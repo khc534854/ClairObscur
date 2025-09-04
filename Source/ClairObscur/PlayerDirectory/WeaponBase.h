@@ -31,6 +31,10 @@ public: // Components
 	UPROPERTY(VisibleDefaultsOnly)
 	class UBoxComponent* BoxComp;
 
+	UPROPERTY(VisibleDefaultsOnly)
+	class USceneComponent* attachpoint;
+
+
 	
 
 	

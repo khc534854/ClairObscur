@@ -9,6 +9,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Component/BattleFSMComponent.h"
+#include "Component/BattleUIComponent.h"
 
 
 // Sets default values
@@ -18,9 +20,9 @@ ABattleManager::ABattleManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 	BattleTimingComp = CreateDefaultSubobject<UBattleTimingComponent>(TEXT("BattleTimingComp"));
-	BattleTurnComp = CreateDefaultSubobject<UBattleTurnComponent>(TEXT("BattleTimingComp"));
-
-
+	BattleTurnComp = CreateDefaultSubobject<UBattleTurnComponent>(TEXT("BattleTurnComp"));
+	BattleFSMComp = CreateDefaultSubobject<UBattleFSMComponent>(TEXT("BattleFSMComp"));
+	BattleUIComp = CreateDefaultSubobject<UBattleUIComponent>(TEXT("BattleUIComp"));
 	//생성자에서 인풋 넣어두자
 	//ConstructorHelpers::FObjectFinder<UInputMappingContext>(TEXT(""));
 }
@@ -29,7 +31,6 @@ ABattleManager::ABattleManager()
 void ABattleManager::BeginPlay()
 {
 	Super::BeginPlay();
-	SetParticipant();
 }
 
 void ABattleManager::StartBattle()
@@ -73,7 +74,7 @@ void ABattleManager::SetParticipant()
 			BattleParticipant.Add(Participant);
 		}
 	}
-	BattleTurnComp->SetTurnList();
+	BattleTurnComp->StartBattle();
 }
 
 void ABattleManager::BindInputActions()
@@ -99,86 +100,99 @@ void ABattleManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ABattleManager::QInputAction(const class FInputActionValue& Value)
+void ABattleManager::QInputAction(const  FInputActionValue& Value)
 {
-	if (CurrentState == BattleState::SelectSkill)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
 		// Skill 1
+		// SelectedSkill = Player.SkillList[1];  
+		BattleFSMComp->ChangeState(EBattleState::SelectTarget);
 	}
 	
 	
-	if (CurrentState == BattleState::EnemyPlayAction)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::EnemyPlayAction)
 	{
 		// Dodge
 	}
 }
 
-void ABattleManager::WInputAction(const class FInputActionValue& Value)
+void ABattleManager::WInputAction(const  FInputActionValue& Value)
 {
-	if (CurrentState == BattleState::SelectSkill)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
 		// Skill 2
+		// SelectedSkill = Player.SkillList[2];  
+		BattleFSMComp->ChangeState(EBattleState::SelectTarget);
+
 	}
 	
-	if (CurrentState == BattleState::SelectAction)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectAction)
 	{
-		// Item
+		// Item NotYet
 	}
 }
 
-void ABattleManager::EInputAction(const class FInputActionValue& Value)
+void ABattleManager::EInputAction(const  FInputActionValue& Value)
 {
-	if (CurrentState == BattleState::SelectSkill)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
 		// Skill 3
+		// SelectedSkill = Player.SkillList[3];   
+		BattleFSMComp->ChangeState(EBattleState::SelectTarget);
+
 	}
 	
-	if (CurrentState == BattleState::EnemyPlayAction)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::EnemyPlayAction)
 	{
 		// parry
 	}
 
-	if (CurrentState == BattleState::SelectAction)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectAction)
 	{
 		// Skill
+		BattleFSMComp->ChangeState(EBattleState::SelectSkill);
 	}
 
-	if (CurrentState == BattleState::PlayerPlayAction)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::PlayerPlayAction)
 	{
 		// Timing
 	}
 }
 
-void ABattleManager::RInputAction(const class FInputActionValue& Value)
+void ABattleManager::RInputAction(const  FInputActionValue& Value)
 {
-	if (CurrentState == BattleState::SelectSkill)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
-		// Next Page Skill
+		// Next Page Skill, Not Yet
 	}
 }
 
-void ABattleManager::FInputAction(const class FInputActionValue& Value)
+void ABattleManager::FInputAction(const  FInputActionValue& Value)
 {
-	if (CurrentState == BattleState::SelectAction)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectAction)
 	{
 		// Attack
+		// SelectedSkill = Player.SkillList[0];  
+		BattleFSMComp->ChangeState(EBattleState::SelectTarget);
 	}
 
-	if (CurrentState == BattleState::SelectTarget)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectTarget)
 	{
 		// select target
+		BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
 	}
 }
 
-void ABattleManager::ESCInputAction(const class FInputActionValue& Value)
+void ABattleManager::ESCInputAction(const  FInputActionValue& Value)
 {
-	if (CurrentState == BattleState::SelectTarget)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectTarget)
 	{
-		// back
+		BattleFSMComp->ChangeState(BattleFSMComp->GetBeforeState());
 	}
 
-	if (CurrentState == BattleState::SelectSkill)
+	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
+		BattleFSMComp->ChangeState(EBattleState::SelectAction);
 		// back
 	}
 }

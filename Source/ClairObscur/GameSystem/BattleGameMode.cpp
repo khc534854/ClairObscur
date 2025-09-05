@@ -2,3 +2,10 @@
 
 
 #include "BattleGameMode.h"
+
+void ABattleGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	
+}

@@ -3,38 +3,28 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ClairObscur/GameSystem/SkillDataAsset.h"
 #include "Components/ActorComponent.h"
-#include "BattleTurnComponent.generated.h"
+#include "SkillComponent.generated.h"
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class CLAIROBSCUR_API UBattleTurnComponent : public UActorComponent
+class CLAIROBSCUR_API USkillComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this component's properties
-	UBattleTurnComponent();
+	USkillComponent();
 
-private:
+protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-
 public:
-
-	void StartBattle();
-	void AdvanceTurn();
-	void BeginNewTurn();
-
-	ACharacter* GetCurrentTurnCharacter() const;
-	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	class ACharacter* CurrentTurnCharacter;
-
-	class ABattleManager* BM;
-
-	int32 CurrentTurnIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<USkillDataAsset*> SkillDataAssets;
 };

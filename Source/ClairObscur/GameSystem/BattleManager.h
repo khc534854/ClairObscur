@@ -6,19 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "BattleManager.generated.h"
 
-enum class BattleState
-{
-	StartBattle,
-	SelectAction,
-	SelectSkill,
-	SelectTarget,
-	PlayerPlayAction,
-	EnemyPlayAction,
-	Waiting,
-	EndBattle,
-	NotBattle
-	
-};
+
 
 UCLASS()
 class CLAIROBSCUR_API ABattleManager : public AActor
@@ -33,37 +21,46 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable)
 	void StartBattle();
+	
 	virtual void EnableInput(APlayerController* PlayerController) override;
 
 	void SetParticipant();
 
 	void BindInputActions();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	class UInputMappingContext* BattleMappingContext;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	class UInputAction* EndTurnAction;
 
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY()
+public:
+	// Component
+	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	class UBattleTimingComponent* BattleTimingComp;
 	
-	UPROPERTY()
+	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
+	class UBattleTurnComponent* BattleTurnComp;
+	
+	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
+	class UBattleFSMComponent* BattleFSMComp;
+
+	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
+	class UBattleUIComponent* BattleUIComp;
+	
+	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	TArray<ACharacter*> BattleParticipant;
 
-	UPROPERTY()
-	class UBattleTurnComponent* BattleTurnComp;
-
-	BattleState CurrentState = BattleState::NotBattle;
-	BattleState BeforeState  = BattleState::NotBattle;
-
-	// Input
 public:
+	// Input
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputMappingContext* BattleMappingContext;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* EndTurnAction;
+	
 	UPROPERTY(EditAnywhere, Category = "Input")
 	class UInputMappingContext* IMC_BattleManager;
 
@@ -80,12 +77,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	class UInputAction* IA_ESC;
 
-	void QInputAction(const class FInputActionValue&  Value);
-	void WInputAction(const class FInputActionValue&  Value);
-	void EInputAction(const class FInputActionValue&  Value);
-	void RInputAction(const class FInputActionValue&  Value);
-	void FInputAction(const class FInputActionValue&  Value);
-	void ESCInputAction(const class FInputActionValue&  Value);
-	
+	void   QInputAction(const struct FInputActionValue& Value);
+	void   WInputAction(const struct FInputActionValue& Value);
+	void   EInputAction(const struct FInputActionValue& Value);
+	void   RInputAction(const struct FInputActionValue& Value);
+	void   FInputAction(const struct FInputActionValue& Value);
+	void ESCInputAction(const struct FInputActionValue& Value);
+
+	class USkillDataAsset* SelectedSkill;
 	
 };

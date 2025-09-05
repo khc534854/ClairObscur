@@ -14,5 +14,5 @@ class CLAIROBSCUR_API ABattleGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
-	
+	virtual void BeginPlay() override;
 };

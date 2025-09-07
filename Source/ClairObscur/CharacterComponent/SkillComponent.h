@@ -8,6 +8,8 @@
 #include "SkillComponent.generated.h"
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnActionFinishedSignature);
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CLAIROBSCUR_API USkillComponent : public UActorComponent
 {
@@ -21,10 +23,28 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void OnMontageCompleted(UAnimMontage* Montage, bool bInterrupted);
+
 public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	void ExecuteSkill(int32 SkillIndex);
+
+	void BasicAttackAction();
+	void QSkillAction();
+	void WSkillAction();
+	void ESkillAction();
+	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<USkillDataAsset*> SkillDataAssets;
+
+	UPROPERTY()
+	class ACharacter* OwnerCharacter;
+
+	UPROPERTY()
+	FOnActionFinishedSignature OnActionFinished;
+
 };

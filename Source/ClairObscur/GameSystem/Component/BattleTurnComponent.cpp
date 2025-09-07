@@ -32,7 +32,7 @@ void UBattleTurnComponent::StartBattle()
 {
 	if (!BM) return;
 
-	CurrentTurnIndex = -1;
+	CurrentTurnIndex = 0;
 	AdvanceTurn();
 }
 
@@ -48,24 +48,22 @@ void UBattleTurnComponent::AdvanceTurn()
 void UBattleTurnComponent::BeginNewTurn()
 {
 	ACharacter* CurrentCharacter = GetCurrentTurnCharacter();
-    
+
 	// BattleManager와 FSM컴포넌트, 현재 캐릭터가 모두 유효한지 확인
 	if (!BM || !BM->BattleFSMComp || !CurrentCharacter) return;
 
 	if (CurrentCharacter->ActorHasTag(FName("Enemy")))
 	{
-		// Enemy 태그가 있다면, FSM 상태를 EnemyPlayAction으로 변경합니다.
 		BM->BattleFSMComp->ChangeState(EBattleState::EnemyPlayAction);
         
 		FString msg = FString::Printf(TEXT("Turn Start: %s (Enemy)"), *CurrentCharacter->GetName());
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, msg);
 
-		auto skillData = Cast<USkillComponent>(CurrentTurnCharacter->GetComponentByClass(USkillComponent::StaticClass()))->SkillDataAssets;
-		CurrentCharacter->PlayAnimMontage(skillData[0]->SkillMontage);
+		//auto skillData = Cast<USkillComponent>(CurrentTurnCharacter->GetComponentByClass(USkillComponent::StaticClass()))->SkillDataAssets;
+		//CurrentCharacter->PlayAnimMontage(skillData[0]->SkillMontage);
 	}
 	else
 	{
-		// Enemy 태그가 없다면 플레이어로 간주하고, FSM 상태를 SelectAction으로 변경합니다.
 		BM->BattleFSMComp->ChangeState(EBattleState::SelectAction);
 
 		FString msg = FString::Printf(TEXT("Turn Start: %s (Player)"), *CurrentCharacter->GetName());

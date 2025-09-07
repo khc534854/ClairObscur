@@ -11,7 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Component/BattleFSMComponent.h"
 #include "Component/BattleUIComponent.h"
-
+#include <ClairObscur/CharacterComponent/SkillComponent.h>
 
 // Sets default values
 ABattleManager::ABattleManager()
@@ -31,13 +31,16 @@ ABattleManager::ABattleManager()
 void ABattleManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	BattleFSMComp->OnStateChanged.AddDynamic(this, &ABattleManager::OnFSMStateChanged);
+	BattleFSMComp->OnStateChanged.AddDynamic(BattleUIComp, &UBattleUIComponent::OnFSMStateChanged);
 }
 
 void ABattleManager::StartBattle()
 {
 	SetParticipant();
-	BindInputActions();
 	EnableInput(GetWorld()->GetFirstPlayerController()); // 인풋 주체 변경
+	BindInputActions();
 }
 
 void ABattleManager::EnableInput(APlayerController* PlayerController)
@@ -93,6 +96,62 @@ void ABattleManager::BindInputActions()
 	}
 }
 
+void ABattleManager::OnCharacterActionFinished()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Action Finished. Advancing to next turn."));
+
+	ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
+	if (Character)
+	{
+		USkillComponent* SkillComp = Character->FindComponentByClass<USkillComponent>();
+		if (SkillComp)
+		{
+			SkillComp->OnActionFinished.RemoveDynamic(this, &ABattleManager::OnCharacterActionFinished);
+		}
+	}
+
+	BattleTurnComp->AdvanceTurn();
+}
+
+void ABattleManager::OnFSMStateChanged(EBattleState NewState)
+{
+	switch (NewState)
+	{
+	case EBattleState::StartBattle:
+		break;
+	case EBattleState::SelectAction:
+		break;
+	case EBattleState::SelectSkill:
+		break;
+	case EBattleState::SelectTarget:
+		break;
+	case EBattleState::PlayerPlayAction:
+		break;
+	case EBattleState::EnemyPlayAction:
+	{
+			auto enemy = BattleTurnComp->GetCurrentTurnCharacter();
+		if (enemy)
+		{
+			USkillComponent* skillComp = enemy->FindComponentByClass<USkillComponent>();
+			if (skillComp)
+			{
+				skillComp->OnActionFinished.AddDynamic(this, &ABattleManager::OnCharacterActionFinished);
+				skillComp->ExecuteSkill(FMath::RandRange(0, 3));
+			}
+		}
+		break;
+	}
+	case EBattleState::Waiting:
+		break;
+	case EBattleState::EndBattle:
+		break;
+	case EBattleState::NotBattle:
+		break;
+	default:
+		break;
+	}
+	}
+
 
 // Called every frame
 void ABattleManager::Tick(float DeltaTime)
@@ -102,17 +161,26 @@ void ABattleManager::Tick(float DeltaTime)
 
 void ABattleManager::QInputAction(const  FInputActionValue& Value)
 {
+	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectAction)
+	{
+		BattleFSMComp->ChangeState(EBattleState::SelectSkill);
+		return;
+	}
+
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
 		// Skill 1
 		// SelectedSkill = Player.SkillList[1];  
 		BattleFSMComp->ChangeState(EBattleState::SelectTarget);
+		SelectedSkillIndex = 1;
+		return;
 	}
 	
 	
 	if (BattleFSMComp->GetCurrentState() == EBattleState::EnemyPlayAction)
 	{
 		// Dodge
+		return;
 	}
 }
 
@@ -123,12 +191,14 @@ void ABattleManager::WInputAction(const  FInputActionValue& Value)
 		// Skill 2
 		// SelectedSkill = Player.SkillList[2];  
 		BattleFSMComp->ChangeState(EBattleState::SelectTarget);
-
+		SelectedSkillIndex = 2;
+		return;
 	}
 	
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectAction)
 	{
 		// Item NotYet
+		return;
 	}
 }
 
@@ -139,23 +209,27 @@ void ABattleManager::EInputAction(const  FInputActionValue& Value)
 		// Skill 3
 		// SelectedSkill = Player.SkillList[3];   
 		BattleFSMComp->ChangeState(EBattleState::SelectTarget);
-
+		SelectedSkillIndex = 3;
+		return;
 	}
 	
 	if (BattleFSMComp->GetCurrentState() == EBattleState::EnemyPlayAction)
 	{
 		// parry
+		return;
 	}
 
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectAction)
 	{
 		// Skill
 		BattleFSMComp->ChangeState(EBattleState::SelectSkill);
+		return;
 	}
 
 	if (BattleFSMComp->GetCurrentState() == EBattleState::PlayerPlayAction)
 	{
 		// Timing
+		return;
 	}
 }
 
@@ -164,6 +238,7 @@ void ABattleManager::RInputAction(const  FInputActionValue& Value)
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
 		// Next Page Skill, Not Yet
+		return;
 	}
 }
 
@@ -174,12 +249,24 @@ void ABattleManager::FInputAction(const  FInputActionValue& Value)
 		// Attack
 		// SelectedSkill = Player.SkillList[0];  
 		BattleFSMComp->ChangeState(EBattleState::SelectTarget);
+		SelectedSkillIndex = 0;
+		return;
 	}
 
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectTarget)
 	{
 		// select target
 		BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
+
+		ACharacter* CurrentCharacter = BattleTurnComp->GetCurrentTurnCharacter();
+		USkillComponent* SkillComp = CurrentCharacter->FindComponentByClass<USkillComponent>();
+		if (SkillComp)
+		{
+			// 스킬 실행 전, "액션 끝나면 보고해!" 라고 구독을 신청합니다.
+			SkillComp->OnActionFinished.AddDynamic(this, &ABattleManager::OnCharacterActionFinished);
+			SkillComp->ExecuteSkill(SelectedSkillIndex);
+		}
+		return;
 	}
 }
 
@@ -188,12 +275,14 @@ void ABattleManager::ESCInputAction(const  FInputActionValue& Value)
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectTarget)
 	{
 		BattleFSMComp->ChangeState(BattleFSMComp->GetBeforeState());
+		return;
 	}
 
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
 		BattleFSMComp->ChangeState(EBattleState::SelectAction);
 		// back
+		return;
 	}
 }
 

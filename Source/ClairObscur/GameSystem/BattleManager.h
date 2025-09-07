@@ -30,6 +30,11 @@ protected:
 
 	void BindInputActions();
 
+	UFUNCTION()
+	void OnFSMStateChanged(enum EBattleState NewState);
+
+	UFUNCTION()
+	void OnCharacterActionFinished();
 
 
 public:
@@ -55,12 +60,6 @@ public:
 
 public:
 	// Input
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	class UInputMappingContext* BattleMappingContext;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	class UInputAction* EndTurnAction;
-	
 	UPROPERTY(EditAnywhere, Category = "Input")
 	class UInputMappingContext* IMC_BattleManager;
 
@@ -84,6 +83,6 @@ public:
 	void   FInputAction(const struct FInputActionValue& Value);
 	void ESCInputAction(const struct FInputActionValue& Value);
 
-	class USkillDataAsset* SelectedSkill;
+	int32 SelectedSkillIndex;
 	
 };

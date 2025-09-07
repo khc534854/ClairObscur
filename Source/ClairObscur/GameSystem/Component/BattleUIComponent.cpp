@@ -23,10 +23,42 @@ void UBattleUIComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//SelectActionWidget	 = CreateWidget(this, UUserWidget::StaticClass());
-	//SelectSkillWidget	 = CreateWidget(this, UUserWidget::StaticClass());
-	//TimingWidget		 = CreateWidget(this, UUserWidget::StaticClass());
-	//SelectTargetWidget	 = CreateWidget(this, UUserWidget::StaticClass());
+	auto PC = GetWorld()->GetFirstPlayerController();
+	if (!PC) return;
+
+	if (SelectActionWidgetClass)
+	{
+		SelectActionWidget = CreateWidget<UUserWidget>(PC, SelectActionWidgetClass);
+		AllWidgets.Add(SelectActionWidget);
+	}
+	if (SelectSkillWidgetClass)
+	{
+		SelectSkillWidget = CreateWidget<UUserWidget>(PC, SelectSkillWidgetClass);
+		AllWidgets.Add(SelectSkillWidget);
+	}
+	if (TimingWidgetClass)
+	{
+		TimingWidget = CreateWidget<UUserWidget>(PC, TimingWidgetClass);
+		AllWidgets.Add(TimingWidget);
+	}
+	if (SelectTargetWidgetClass)
+	{
+		SelectTargetWidget = CreateWidget<UUserWidget>(PC, SelectTargetWidgetClass);
+		AllWidgets.Add(SelectTargetWidget);
+	}
+
+	HideAllWidgets();
+}
+
+void UBattleUIComponent::HideAllWidgets()
+{
+	for (UUserWidget* Widget : AllWidgets)
+	{
+		if (Widget && Widget->IsInViewport())
+		{
+			Widget->RemoveFromParent();
+		}
+	}
 }
 
 
@@ -41,27 +73,41 @@ void UBattleUIComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UBattleUIComponent::OnFSMStateChanged(EBattleState NewState)
 {
+	HideAllWidgets();
+
 	switch (NewState)
 	{
 	case EBattleState::SelectAction:
-		// 행동 선택(공격, 스킬, 아이템) UI를 화면에 표시하는 로직
-				
+		if (SelectActionWidget)
+		{
+			SelectActionWidget->AddToViewport();
+		}
 		break;
     
 	case EBattleState::SelectSkill:
-		// 스킬 선택 UI를 화면에 표시하는 로직
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("UI: Show Skill Select Widget"));
+		if (SelectSkillWidget)
+		{
+			SelectSkillWidget->AddToViewport();
+		}
 		break;
 
 	case EBattleState::SelectTarget:
-		// 타겟 선택 UI를 화면에 표시하는 로직
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("UI: Show Target Select Widget"));
+		if (SelectTargetWidget)
+		{
+			SelectTargetWidget->AddToViewport();
+		}
 		break;
-
 	case EBattleState::PlayerPlayAction:
+		if (TimingWidget)
+		{
+			TimingWidget->AddToViewport();
+		}
+		break;
 	case EBattleState::EnemyPlayAction:
-		// 모든 선택 UI를 숨기는 로직
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("UI: Hide All Select Widgets"));
+		if (TimingWidget)
+		{
+			TimingWidget->AddToViewport();
+		}
 		break;
 	case EBattleState::StartBattle:
 		break;

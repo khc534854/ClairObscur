@@ -11,7 +11,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "Component/BattleFSMComponent.h"
 #include "Component/BattleUIComponent.h"
-#include <ClairObscur/CharacterComponent/SkillComponent.h>
+#include "Component/BattleCameraComponent.h"
+#include "CharacterComponent/SkillComponent.h"
 
 // Sets default values
 ABattleManager::ABattleManager()
@@ -23,6 +24,8 @@ ABattleManager::ABattleManager()
 	BattleTurnComp = CreateDefaultSubobject<UBattleTurnComponent>(TEXT("BattleTurnComp"));
 	BattleFSMComp = CreateDefaultSubobject<UBattleFSMComponent>(TEXT("BattleFSMComp"));
 	BattleUIComp = CreateDefaultSubobject<UBattleUIComponent>(TEXT("BattleUIComp"));
+	BattleCameraComp = CreateDefaultSubobject<UBattleCameraComponent>(TEXT("BattleCameraComp"));
+
 	//생성자에서 인풋 넣어두자
 	//ConstructorHelpers::FObjectFinder<UInputMappingContext>(TEXT(""));
 }
@@ -34,6 +37,7 @@ void ABattleManager::BeginPlay()
 
 	BattleFSMComp->OnStateChanged.AddDynamic(this, &ABattleManager::OnFSMStateChanged);
 	BattleFSMComp->OnStateChanged.AddDynamic(BattleUIComp, &UBattleUIComponent::OnFSMStateChanged);
+	BattleFSMComp->OnStateChanged.AddDynamic(BattleCameraComp, &UBattleCameraComponent::OnFSMStateChanged);
 }
 
 void ABattleManager::StartBattle()
@@ -41,6 +45,17 @@ void ABattleManager::StartBattle()
 	SetParticipant();
 	EnableInput(GetWorld()->GetFirstPlayerController()); // 인풋 주체 변경
 	BindInputActions();
+
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController)
+	{
+		// BattleManager 액터를 새로운 뷰 타겟으로 설정합니다.
+		// 1.0초에 걸쳐 부드럽게 카메라 뷰가 전환됩니다.
+		PlayerController->SetViewTargetWithBlend(this, 1.0f);
+	}
+
+	// 전투 시작 상태로 변경
+	BattleFSMComp->ChangeState(EBattleState::StartBattle);
 }
 
 void ABattleManager::EnableInput(APlayerController* PlayerController)

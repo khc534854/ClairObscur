@@ -54,6 +54,9 @@ public:
 
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	class UBattleUIComponent* BattleUIComp;
+
+	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
+	class UBattleCameraComponent* BattleCameraComp;
 	
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	TArray<ACharacter*> BattleParticipant;

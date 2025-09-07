@@ -6,14 +6,8 @@
 #include "GameFramework/Character.h"
 #include "PlayerBase.generated.h"
 
+struct FInputActionInstance;
 struct FFindFloorResult;
-
-UENUM(BlueprintType)
-enum class EPlayerStateSimple : uint8
-{
-	Movement UMETA(DisplayName="Movement"),
-	Combat   UMETA(DisplayName="Combat")
-};
 
 class AWeaponBase;
 
@@ -46,8 +40,16 @@ public: // components
 	UPROPERTY(VisibleAnywhere)
 	class USpringArmComponent* springArmComp;
 
+	// FSM 컴포넌트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UPlayerFSM* fsm;
 
+	// control모드
+	bool IsFreeControl() const;
 
+	void EnterCommandMode();
+	void ExitCommandMode();
+	
 
 public: // input
 
@@ -70,6 +72,9 @@ public: // input
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UInputAction* IA_LookUp;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UInputAction* IA_CustomJump;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UInputAction* IA_SpwanWeapon;
 
@@ -96,8 +101,6 @@ public: // input function
 	UFUNCTION()
 	void HandleTurnInput(const struct FInputActionValue& value);
 
-
-	
 	UFUNCTION()
 	void MoveForward_Triggered(const FInputActionInstance& Instance);
 	
@@ -111,17 +114,14 @@ public: // input function
 
 	UFUNCTION()
 	void JogOverrideAction_Finished(const FInputActionInstance& Instance);
+	
+	UFUNCTION()
+	void PlayerJump();
 
-
+	//공격
 	UFUNCTION()
 	void PlayerAttackQ();
 
-
-
-
-	
-
-	
 
 public: // input variables
 	UPROPERTY(EditDefaultsOnly)
@@ -140,22 +140,13 @@ public: // input variables
 	class UAnimMontage* montage_q;
 	
 public:
-
-	
-	// 상태 전환
-
-	
-
+	// 무기 소환
+	UFUNCTION(BlueprintCallable)
+	void SpawnWeapon();
 
 	UFUNCTION(BlueprintCallable)
-	void EnterCombatState();
+	void DestroyWeapon();
 
-	UFUNCTION(BlueprintCallable)
-	void ExitCombatState();
-
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="State")
-	EPlayerStateSimple CurrentState = EPlayerStateSimple::Movement;
 
 	// 검 클래스 & 인스턴스
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
@@ -166,12 +157,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	FName SwordSocketName = TEXT("RightHandSocket");
-	
 
-
+	UPROPERTY(EditDefaultsOnly, Category=Weapon)
+	bool bHasWeapon = false;
 	
 	UFUNCTION()
-	void OnToggleCombat_Triggered(const FInputActionInstance& Instance);
+	void OnToggleWeapon_Triggered(const FInputActionInstance& Instance);
 	
 };
 

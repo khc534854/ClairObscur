@@ -37,14 +37,15 @@ APlayerBase::APlayerBase()
 	cameraComp ->SetupAttachment(springArmComp);
 	
 	// 위치 설정
-	springArmComp->SetRelativeLocation(FVector(0.000000,0.000000,107.192264));
+	springArmComp->SetRelativeLocation(FVector(0.000000,0.000000,57.192264));
 	springArmComp->SetRelativeRotation(FRotator(0.000000,90.000000,0.000000));
-	springArmComp->TargetArmLength= 310.f;
+	springArmComp->TargetArmLength= 200.f;
 	springArmComp->bUsePawnControlRotation = true;
 	springArmComp->bInheritPitch= true;
 	springArmComp->bInheritYaw= true;
 	springArmComp->bInheritRoll= true;
 	springArmComp->bInheritPitch= true;
+	springArmComp->bEnableCameraLag = true;
 
 	// fsm
 	fsm = CreateDefaultSubobject<UPlayerFSM>(TEXT("FSM"));
@@ -77,7 +78,7 @@ void APlayerBase::BeginPlay()
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 }
 
 // Called to bind functionality to input
@@ -122,7 +123,7 @@ FVector2D APlayerBase::GetMoveSpeed() const
 
 void APlayerBase::MoveToFloor()
 {
-	
+	if (!IsFreeControl()) return;
 	InitialStepHeight = GetCharacterMovement()->MaxStepHeight;
 	GetCharacterMovement()->MaxStepHeight = LargeStepHeight;
 
@@ -147,11 +148,13 @@ void APlayerBase::MoveToFloor()
 // 카메라시점 이동
 void APlayerBase::HandleLookUpInput(const struct FInputActionValue& value)
 {
+	if (!IsFreeControl()) return;
 	AddControllerPitchInput(value.Get<float>());
 }
 
 void APlayerBase::HandleTurnInput(const struct FInputActionValue& value)
 {
+	if (!IsFreeControl()) return;
 	AddControllerYawInput(value.Get<float>());
 }
 
@@ -160,6 +163,7 @@ void APlayerBase::HandleTurnInput(const struct FInputActionValue& value)
 
 void APlayerBase::HandleForwardInput(float value)
 {
+	if (!IsFreeControl()) return;
 	FRotator YawRot = UKismetMathLibrary::MakeRotator(0,0,GetControlRotation().Yaw);
 	const FVector Forward = UKismetMathLibrary::GetForwardVector(YawRot);
 	AddMovementInput(Forward, value);
@@ -177,7 +181,7 @@ void APlayerBase::MoveForward_Triggered(const FInputActionInstance& Instance)
 // 좌우 이동
 void APlayerBase::HandleRightInput(float value)
 {
-
+	if (!IsFreeControl()) return;
 	FRotator YawRot = UKismetMathLibrary::MakeRotator(0,0,GetControlRotation().Yaw);
 	const FVector Right = UKismetMathLibrary::GetRightVector(YawRot);
 	AddMovementInput(Right, value);
@@ -214,6 +218,12 @@ void APlayerBase::PlayerJump()
 	Jump();
 }
 
+// 공격몽타주재생
+void APlayerBase::PlayerAttackQ()
+{
+	if (!bHasWeapon) {return;}
+	PlayAnimMontage(montage_q);
+}
 
 
 // 무기 소환
@@ -256,17 +266,12 @@ void APlayerBase::OnToggleWeapon_Triggered(const FInputActionInstance& Instance)
 }
 
 
+
 void APlayerBase::EnterCommandMode()
 {
 	if (fsm)
 	{
 		fsm->SetControlMode(EControlMode::Commanded);
-
-		if (APlayerController* PC = Cast<APlayerController>(GetController()))
-		{
-			PC->SetIgnoreMoveInput(false);
-		}
-		
 	}
 }
 
@@ -275,20 +280,33 @@ void APlayerBase::ExitCommandMode()
 	if (fsm)
 	{
 		fsm->SetControlMode(EControlMode::Free);
-
-		if (APlayerController* PC = Cast<APlayerController>(GetController()))
-		{
-			PC->SetIgnoreMoveInput(true);
-		}
 		
 	}
 }
 
 
-
-// 공격 함수
-void APlayerBase::PlayerAttackQ()
+// 카메라 구도 변경
+// 카메라 보간
+void APlayerBase::SelectSkillCamera()
 {
-	if (!bHasWeapon) {return;}
-	PlayAnimMontage(montage_q);
+	CamStartLoc = springArmComp->GetRelativeLocation();  // 나중에 보간처리   
+	CamEndLoc   = FVector(-120.000000,0.000000,57.192264);
+	springArmComp->SetRelativeLocation(CamEndLoc);
+
+	CamStartRot = springArmComp->GetRelativeRotation(); // 나중에 보간처리
+	CamEndRot = FRotator(-19.683498,26.383559,10.627584);
+	springArmComp->SetRelativeRotation(CamEndRot);
 }
+
+void APlayerBase::DefaultCamera()
+{
+	CamStartLoc = springArmComp->GetRelativeLocation();  // 나중에 보간처리   
+	CamEndLoc   = FVector(0.000000,0.000000,57.192264);
+	springArmComp->SetRelativeLocation(CamEndLoc);
+
+	CamStartRot = springArmComp->GetRelativeRotation(); // 나중에 보간처리
+	CamEndRot = FRotator(0.000000,90.000000,0.000000);
+	springArmComp->SetRelativeRotation(CamEndRot);
+}
+
+

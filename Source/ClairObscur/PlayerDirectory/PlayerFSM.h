@@ -44,15 +44,19 @@ public:
 	
 	// 컨트롤모드 및 디폴트 상태 설정
 	UPROPERTY(BlueprintReadOnly)
-	EControlMode ControlMode = EControlMode::Commanded;
+	EControlMode ControlMode = EControlMode::Free;
 	UPROPERTY(BlueprintReadOnly)
 	ECommandedPlayerState CurrentState = ECommandedPlayerState::CombatIdle;
 
 	// 컨트롤 모드 및 상태 get, set 함수
 
-	// set 
-	void SetControlMode(EControlMode Mode) { ControlMode = Mode; }
-	void SetCombatState(ECommandedPlayerState NewState) {
+	// set
+	void SetControlMode(EControlMode Mode)
+	{
+		ControlMode = Mode;
+	}
+	
+	void SetCommandedState(ECommandedPlayerState NewState) {
 		if (ControlMode == EControlMode::Commanded) {
 			CurrentState = NewState;
 		}
@@ -62,7 +66,7 @@ public:
 	EControlMode GetControlMode() const
 	{ return ControlMode; }
 	
-	ECommandedPlayerState GetCombatState() const
+	ECommandedPlayerState GetCommandedState() const
 	{ return CurrentState; }
 
 	
@@ -73,6 +77,14 @@ public:
 	void DamagedState();
 	void DieState();
 
-	//피격, 회피, 막기 함수
+	//피격, 회피, 쳐내기(막기)  함수
+	void OnTakeDamage();
+	void OnDodge();
+	void OnParry();
+	
+
+	
+
+
 	
 };

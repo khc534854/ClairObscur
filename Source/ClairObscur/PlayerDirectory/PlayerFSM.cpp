@@ -60,28 +60,66 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
 	// 에디터 화면에 현재 상태 출력
 	FString stateStr = UEnum::GetValueAsString(CurrentState);
 	GEngine->AddOnScreenDebugMessage(0,1,FColor::Cyan, stateStr);
-}
 
+	FString modeStr = UEnum::GetValueAsString(ControlMode);
+	GEngine->AddOnScreenDebugMessage(1, 1, FColor::Black, modeStr);
+	
+}
 
 // 상태 함수
 void UPlayerFSM::CombatIdleState()
 {
+	if (player->IsFreeControl()) { return; }
+	GEngine->AddOnScreenDebugMessage(2, 1, FColor::Orange, TEXT("CombatIdleState"));
 }
-
 
 void UPlayerFSM::SelectSkillState()
 {
+	if (player->IsFreeControl()) { return; }
+	GEngine->AddOnScreenDebugMessage(3, 1, FColor::Orange, TEXT("SelectSkillState"));
+
+	player->SelectSkillCamera();
 }
 
 void UPlayerFSM::AttackState()
 {
+	if (player->IsFreeControl()) { return; }
+	GEngine->AddOnScreenDebugMessage(4, 1, FColor::Orange, TEXT("AttackState"));
+
 }
 
 void UPlayerFSM::DamagedState()
 {
+	if (player->IsFreeControl()) { return; }
+	GEngine->AddOnScreenDebugMessage(5, 1, FColor::Orange, TEXT("DamagedState"));
+
 }
 
 void UPlayerFSM::DieState()
 {
+	if (player->IsFreeControl()) { return; }
+	GEngine->AddOnScreenDebugMessage(6, 1, FColor::Orange, TEXT("DieState"));
 }
+
+
+// 피격
+void UPlayerFSM::OnTakeDamage()
+{
+	if (player->IsFreeControl()) { return; }
+}
+
+// 회피
+void UPlayerFSM::OnDodge()
+{
+	if (player->IsFreeControl()) { return; }
+}
+
+// 쳐내기
+void UPlayerFSM::OnParry()
+{
+	if (player->IsFreeControl()) { return; }
+}
+
+
+
 

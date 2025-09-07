@@ -118,10 +118,12 @@ public: // input function
 	UFUNCTION()
 	void PlayerJump();
 
+	
 	//공격
 	UFUNCTION()
 	void PlayerAttackQ();
 
+	
 
 public: // input variables
 	UPROPERTY(EditDefaultsOnly)
@@ -136,8 +138,12 @@ public: // input variables
 	UPROPERTY(EditDefaultsOnly)
 	float LargeStepHeight;
 
+
+	// 몽타주
+	// q공격
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Montage")
 	class UAnimMontage* montage_q;
+
 	
 public:
 	// 무기 소환
@@ -163,6 +169,18 @@ public:
 	
 	UFUNCTION()
 	void OnToggleWeapon_Triggered(const FInputActionInstance& Instance);
-	
+
+
+public: // 카메라 변경
+	float CamBlendTime = 0.f;
+	float CamBlendDuration = 0.f;
+	bool  bCamBlending = false;
+	FVector CamStartLoc;
+	FVector CamEndLoc;
+	FRotator CamStartRot;
+	FRotator CamEndRot;
+
+	void SelectSkillCamera();
+	void DefaultCamera();
 };
 

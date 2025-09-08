@@ -78,7 +78,6 @@ void UPlayerFSM::SelectSkillState()
 	if (player->IsFreeControl()) { return; }
 	GEngine->AddOnScreenDebugMessage(3, 1, FColor::Orange, TEXT("SelectSkillState"));
 
-	player->SelectSkillCamera();
 }
 
 void UPlayerFSM::AttackState()

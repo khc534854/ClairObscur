@@ -160,7 +160,6 @@ void APlayerBase::HandleTurnInput(const struct FInputActionValue& value)
 
 
 // 위아래 이동
-
 void APlayerBase::HandleForwardInput(float value)
 {
 	if (!IsFreeControl()) return;
@@ -168,7 +167,6 @@ void APlayerBase::HandleForwardInput(float value)
 	const FVector Forward = UKismetMathLibrary::GetForwardVector(YawRot);
 	AddMovementInput(Forward, value);
 }
-
 
 void APlayerBase::MoveForward_Triggered(const FInputActionInstance& Instance)
 {
@@ -186,7 +184,6 @@ void APlayerBase::HandleRightInput(float value)
 	const FVector Right = UKismetMathLibrary::GetRightVector(YawRot);
 	AddMovementInput(Right, value);
 }
-
 
 void APlayerBase::MoveRight_Triggered(const FInputActionInstance& Instance)
 {
@@ -217,14 +214,6 @@ void APlayerBase::PlayerJump()
 	if (!IsFreeControl()) return; 
 	Jump();
 }
-
-// 공격몽타주재생
-void APlayerBase::PlayerAttackQ()
-{
-	if (!bHasWeapon) {return;}
-	PlayAnimMontage(montage_q);
-}
-
 
 // 무기 소환
 void APlayerBase::SpawnWeapon()
@@ -267,46 +256,11 @@ void APlayerBase::OnToggleWeapon_Triggered(const FInputActionInstance& Instance)
 
 
 
-void APlayerBase::EnterCommandMode()
+// 공격몽타주재생
+void APlayerBase::PlayerAttackQ()
 {
-	if (fsm)
-	{
-		fsm->SetControlMode(EControlMode::Commanded);
-	}
-}
-
-void APlayerBase::ExitCommandMode()
-{
-	if (fsm)
-	{
-		fsm->SetControlMode(EControlMode::Free);
-		
-	}
-}
-
-
-// 카메라 구도 변경
-// 카메라 보간
-void APlayerBase::SelectSkillCamera()
-{
-	CamStartLoc = springArmComp->GetRelativeLocation();  // 나중에 보간처리   
-	CamEndLoc   = FVector(-120.000000,0.000000,57.192264);
-	springArmComp->SetRelativeLocation(CamEndLoc);
-
-	CamStartRot = springArmComp->GetRelativeRotation(); // 나중에 보간처리
-	CamEndRot = FRotator(-19.683498,26.383559,10.627584);
-	springArmComp->SetRelativeRotation(CamEndRot);
-}
-
-void APlayerBase::DefaultCamera()
-{
-	CamStartLoc = springArmComp->GetRelativeLocation();  // 나중에 보간처리   
-	CamEndLoc   = FVector(0.000000,0.000000,57.192264);
-	springArmComp->SetRelativeLocation(CamEndLoc);
-
-	CamStartRot = springArmComp->GetRelativeRotation(); // 나중에 보간처리
-	CamEndRot = FRotator(0.000000,90.000000,0.000000);
-	springArmComp->SetRelativeRotation(CamEndRot);
+	if (!bHasWeapon) {return;}
+	PlayAnimMontage(montage_q);
 }
 
 

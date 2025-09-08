@@ -82,9 +82,4 @@ public:
 	void OnDodge();
 	void OnParry();
 	
-
-	
-
-
-	
 };

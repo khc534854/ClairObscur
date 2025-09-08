@@ -170,17 +170,8 @@ public:
 	UFUNCTION()
 	void OnToggleWeapon_Triggered(const FInputActionInstance& Instance);
 
+	
 
-public: // 카메라 변경
-	float CamBlendTime = 0.f;
-	float CamBlendDuration = 0.f;
-	bool  bCamBlending = false;
-	FVector CamStartLoc;
-	FVector CamEndLoc;
-	FRotator CamStartRot;
-	FRotator CamEndRot;
 
-	void SelectSkillCamera();
-	void DefaultCamera();
 };
 

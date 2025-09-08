@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "CharacterComponent/SkillComponent.h"
 #include "PlayerDirectory/PlayerFSM.h"
 #include "PlayerDirectory/WeaponBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -49,7 +50,9 @@ APlayerBase::APlayerBase()
 
 	// fsm
 	fsm = CreateDefaultSubobject<UPlayerFSM>(TEXT("FSM"));
-	
+
+	// skillComp
+	skillComp = CreateDefaultSubobject<USkillComponent>(TEXT("SkillComp"));
 }
 
 // Called when the game starts or when spawned

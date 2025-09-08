@@ -44,11 +44,13 @@ public: // components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UPlayerFSM* fsm;
 
+	// skill component 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class USkillComponent* skillComp;
+	
 	// control모드
 	bool IsFreeControl() const;
 
-	void EnterCommandMode();
-	void ExitCommandMode();
 	
 
 public: // input

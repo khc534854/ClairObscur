@@ -20,12 +20,16 @@ ABattleManager::ABattleManager()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("DefaultSceneRoot"));
+	RootComponent = DefaultSceneRoot;
+	
 	BattleTimingComp = CreateDefaultSubobject<UBattleTimingComponent>(TEXT("BattleTimingComp"));
 	BattleTurnComp = CreateDefaultSubobject<UBattleTurnComponent>(TEXT("BattleTurnComp"));
 	BattleFSMComp = CreateDefaultSubobject<UBattleFSMComponent>(TEXT("BattleFSMComp"));
 	BattleUIComp = CreateDefaultSubobject<UBattleUIComponent>(TEXT("BattleUIComp"));
 	BattleCameraComp = CreateDefaultSubobject<UBattleCameraComponent>(TEXT("BattleCameraComp"));
-
+	BattleCameraComp->SetupAttachment(DefaultSceneRoot);
+	
 	//생성자에서 인풋 넣어두자
 	//ConstructorHelpers::FObjectFinder<UInputMappingContext>(TEXT(""));
 }
@@ -37,7 +41,6 @@ void ABattleManager::BeginPlay()
 
 	BattleFSMComp->OnStateChanged.AddDynamic(this, &ABattleManager::OnFSMStateChanged);
 	BattleFSMComp->OnStateChanged.AddDynamic(BattleUIComp, &UBattleUIComponent::OnFSMStateChanged);
-	BattleFSMComp->OnStateChanged.AddDynamic(BattleCameraComp, &UBattleCameraComponent::OnFSMStateChanged);
 }
 
 void ABattleManager::StartBattle()
@@ -49,13 +52,11 @@ void ABattleManager::StartBattle()
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController)
 	{
-		// BattleManager 액터를 새로운 뷰 타겟으로 설정합니다.
-		// 1.0초에 걸쳐 부드럽게 카메라 뷰가 전환됩니다.
 		PlayerController->SetViewTargetWithBlend(this, 1.0f);
 	}
 
 	// 전투 시작 상태로 변경
-	BattleFSMComp->ChangeState(EBattleState::StartBattle);
+	//BattleFSMComp->ChangeState(EBattleState::StartBattle);
 }
 
 void ABattleManager::EnableInput(APlayerController* PlayerController)
@@ -92,6 +93,21 @@ void ABattleManager::SetParticipant()
 			BattleParticipant.Add(Participant);
 		}
 	}
+
+	for (ACharacter* Character : BattleParticipant)
+	{
+		if (Character && Character->ActorHasTag(FName("Enemy")))
+		{
+			// "Enemy" 태그가 있으면 적군 목록에 추가합니다.
+			EnemyParty.Add(Character);
+		}
+		else if(Character)
+		{
+			// 없으면 아군 목록에 추가합니다.
+			PlayerParty.Add(Character);
+		}
+	}
+	
 	BattleTurnComp->StartBattle();
 }
 
@@ -130,21 +146,47 @@ void ABattleManager::OnCharacterActionFinished()
 
 void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 {
+	auto currentCharacter = BattleTurnComp->GetCurrentTurnCharacter();
+	
 	switch (NewState)
 	{
 	case EBattleState::StartBattle:
 		break;
 	case EBattleState::SelectAction:
-		break;
+		{
+			FVector CamLocation = FVector(currentCharacter->GetActorLocation()) - FVector(150, -200, -20); // 목표 위치 계산
+			FRotator CamRotation = FRotator(0, -30, -5); // 목표 회전 계산
+			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
+			//BattleCameraComp->MoveCameraTo(FVector(currentCharacter->GetActorLocation()) - FVector(150, -200, -20), FRotator(0, -30, -5));
+			break;
+		}
 	case EBattleState::SelectSkill:
-		break;
+		{
+			FVector CamLocation = FVector(currentCharacter->GetActorLocation()) - FVector(110, -80, -80); // 목표 위치 계산
+			FRotator CamRotation = FRotator(-15, -10, 5);
+			BattleCameraComp->StartMoveWithCurve(CamLocation, CamRotation, 5.0f);
+			//BattleCameraComp->MoveCameraTo(FVector(currentCharacter->GetActorLocation()) - FVector(110, -80, -80), FRotator(-15, -10, 5));
+			break;
+		}
 	case EBattleState::SelectTarget:
-		break;
+		{
+			FVector CamLocation = EnemyParty[0]->GetActorLocation() - FVector(150,0, -50);
+			FRotator CamRotation = FRotator(0); 
+			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
+			//BattleCameraComp->MoveCameraTo(EnemyParty[0]->GetActorLocation() - FVector(150,0, -50), FRotator(0));
+			break;
+		}
 	case EBattleState::PlayerPlayAction:
-		break;
+		{
+			FVector CamLocation = FVector(-170, 340, 150);
+			FRotator CamRotation = FRotator(0, -40, 0); 
+			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
+			//BattleCameraComp->MoveCameraTo(FVector(-170, 340, 150), FRotator(0, -40, 0));
+			break;
+		}
 	case EBattleState::EnemyPlayAction:
 	{
-			auto enemy = BattleTurnComp->GetCurrentTurnCharacter();
+		auto enemy = BattleTurnComp->GetCurrentTurnCharacter();
 		if (enemy)
 		{
 			USkillComponent* skillComp = enemy->FindComponentByClass<USkillComponent>();
@@ -154,6 +196,7 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 				skillComp->ExecuteSkill(FMath::RandRange(0, 3));
 			}
 		}
+			//카메라 어떻게
 		break;
 	}
 	case EBattleState::Waiting:
@@ -165,7 +208,7 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 	default:
 		break;
 	}
-	}
+}
 
 
 // Called every frame
@@ -176,11 +219,7 @@ void ABattleManager::Tick(float DeltaTime)
 
 void ABattleManager::QInputAction(const  FInputActionValue& Value)
 {
-	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectAction)
-	{
-		BattleFSMComp->ChangeState(EBattleState::SelectSkill);
-		return;
-	}
+
 
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
@@ -209,7 +248,7 @@ void ABattleManager::WInputAction(const  FInputActionValue& Value)
 		SelectedSkillIndex = 2;
 		return;
 	}
-	
+
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectAction)
 	{
 		// Item NotYet

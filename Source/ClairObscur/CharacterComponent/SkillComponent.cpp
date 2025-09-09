@@ -69,24 +69,3 @@ void USkillComponent::ExecuteSkill(int32 SkillIndex)
 		}
 	}
 }
-
-void USkillComponent::BasicAttackAction()
-{
-	OwnerCharacter->GetMesh()->PlayAnimation(SkillDataAssets[0]->SkillMontage, false);
-}
-
-void USkillComponent::QSkillAction()
-{
-	OwnerCharacter->GetMesh()->PlayAnimation(SkillDataAssets[1]->SkillMontage, false);
-}
-
-void USkillComponent::WSkillAction()
-{
-	OwnerCharacter->GetMesh()->PlayAnimation(SkillDataAssets[2]->SkillMontage, false);
-}
-
-void USkillComponent::ESkillAction()
-{
-	OwnerCharacter->GetMesh()->PlayAnimation(SkillDataAssets[3]->SkillMontage, false);
-}
-

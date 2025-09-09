@@ -45,6 +45,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> SelectTargetWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> PlayerHUDWidgetClass;
 
 	UPROPERTY()
 	class UUserWidget* SelectActionWidget;
@@ -55,6 +57,8 @@ public:
 	class UUserWidget* TimingWidget;
 	UPROPERTY()
 	class UUserWidget* SelectTargetWidget;
+	UPROPERTY()
+	class UUserWidget* PlayerHUDWidget;
 
 	UPROPERTY()
 	TArray<UUserWidget*> AllWidgets;

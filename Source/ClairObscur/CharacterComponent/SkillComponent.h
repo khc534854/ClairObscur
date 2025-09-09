@@ -32,12 +32,6 @@ public:
 
 	void ExecuteSkill(int32 SkillIndex);
 
-	void BasicAttackAction();
-	void QSkillAction();
-	void WSkillAction();
-	void ESkillAction();
-	
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<USkillDataAsset*> SkillDataAssets;
 

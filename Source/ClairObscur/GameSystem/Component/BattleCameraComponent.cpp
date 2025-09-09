@@ -6,6 +6,7 @@
 #include "BattleFSMComponent.h"
 #include "BattleTurnComponent.h"
 #include "ClairObscur/GameSystem/BattleManager.h" 
+#include "GameFramework/Character.h"
 
 
 // Sets default values for this component's properties
@@ -36,42 +37,91 @@ void UBattleCameraComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FVector NewLocation = FMath::VInterpTo(MainCamera->GetComponentLocation(), TargetLocation, DeltaTime, CameraInterpSpeed);
-	MainCamera->SetWorldLocation(NewLocation);
-
-	FRotator NewRotation = FMath::RInterpTo(MainCamera->GetComponentRotation(), TargetRotation, DeltaTime, CameraInterpSpeed);
-	MainCamera->SetWorldRotation(NewRotation);
+	if (bIsMoving && UpdateCameraMovement)
+	{
+		UpdateCameraMovement(DeltaTime);
+	}
 }
 
-void UBattleCameraComponent::OnFSMStateChanged(EBattleState NewState)
+void UBattleCameraComponent::SetFocusOnCharacter(const ACharacter* TargetCharacter)
 {
-	auto* OwnerManager = GetOwner<ABattleManager>();
-	if (!OwnerManager || !OwnerManager->BattleTurnComp) return;
+	if (!TargetCharacter) return;
 
-	ACharacter* CurrentCharacter = OwnerManager->BattleTurnComp->GetCurrentTurnCharacter();
-	if (!CurrentCharacter) return;
+	// 캐릭터의 뒤쪽 대각선 위치를 계산합니다. (값은 예시입니다)
+	const FVector Offset = (TargetCharacter->GetActorForwardVector() * -300.0f) + (TargetCharacter->GetActorRightVector() * 150.0f) + FVector(0, 0, 100.0f);
+	TargetLocation = TargetCharacter->GetActorLocation() + Offset;
 
-	switch (NewState)
+	// 캐릭터를 바라보도록 회전값을 계산합니다.
+	TargetRotation = (TargetCharacter->GetActorLocation() - TargetLocation).Rotation();
+}
+
+void UBattleCameraComponent::SetWideShot(const TArray<ACharacter*>& AllCharacters)
+{
+}
+
+void UBattleCameraComponent::StartMoveWithInterp(FVector NewTargetLocation, FRotator NewTargetRotation,
+	float InterpSpeed)
+{
+	TargetLocation = NewTargetLocation;
+	TargetRotation = NewTargetRotation;
+	CameraInterpSpeed = InterpSpeed;
+    
+	// Tick에서 UpdateWithInterp 함수를 실행하도록 '전략'을 설정합니다.
+	UpdateCameraMovement = [this](float DeltaTime) { this->UpdateWithInterp(DeltaTime); };
+    
+	bIsMoving = true;
+}
+
+void UBattleCameraComponent::StartMoveWithCurve(FVector NewTargetLocation, FRotator NewTargetRotation, float Duration)
+{
+	StartLocation = MainCamera->GetComponentLocation();
+	StartRotation = MainCamera->GetComponentRotation();
+	TargetLocation = NewTargetLocation;
+	TargetRotation = NewTargetRotation;
+	MovementDuration = Duration;
+	MovementElapsedTime = 0.0f;
+    
+	// Tick에서 UpdateWithCurve 함수를 실행하도록 '전략'을 설정합니다.
+	UpdateCameraMovement = [this](float DeltaTime) { this->UpdateWithCurve(DeltaTime); };
+
+	bIsMoving = true;
+}
+
+void UBattleCameraComponent::MoveCameraTo(FVector NewTargetLocation, FRotator NewTargetRotation)
+{
+	TargetLocation = NewTargetLocation;
+	TargetRotation = NewTargetRotation;
+}
+
+void UBattleCameraComponent::UpdateWithInterp(float DeltaTime)
+{
+	const FVector CurrentLocation = MainCamera->GetComponentLocation();
+	const FRotator CurrentRotation = MainCamera->GetComponentRotation();
+    
+	FVector NewLocation = FMath::VInterpTo(CurrentLocation, TargetLocation, DeltaTime, CameraInterpSpeed);
+	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, CameraInterpSpeed);
+	MainCamera->SetWorldLocationAndRotation(NewLocation, NewRotation);
+
+	// 목표 지점에 거의 도달하면 이동을 멈춥니다.
+	if (CurrentLocation.Equals(TargetLocation, 1.0f))
 	{
-	case EBattleState::SelectAction:
-		break;
-	case EBattleState::SelectSkill:
-		break;
-	case EBattleState::SelectTarget:
-		break;
-	case EBattleState::PlayerPlayAction:
-		break;
-	case EBattleState::EnemyPlayAction:
-		break;
-	case EBattleState::StartBattle:
-		break;
-	case EBattleState::Waiting:
-		break;
-	case EBattleState::EndBattle:
-		break;
-	case EBattleState::NotBattle:
-		break;
-	default:;
+		bIsMoving = false;
+	}
+}
+
+void UBattleCameraComponent::UpdateWithCurve(float DeltaTime)
+{
+	MovementElapsedTime += DeltaTime * CameraInterpSpeed;
+	const float TimeRatio = FMath::Clamp(MovementElapsedTime / MovementDuration, 0.0f, 1.0f);
+	const float CurveAlpha = MovementCurve->GetFloatValue(TimeRatio);
+
+	const FVector NewLocation = FMath::Lerp(StartLocation, TargetLocation, CurveAlpha);
+	const FQuat NewRotationQuat = FQuat::Slerp(StartRotation.Quaternion(), TargetRotation.Quaternion(), CurveAlpha);
+	MainCamera->SetWorldLocationAndRotation(NewLocation, NewRotationQuat);
+
+	if (MovementElapsedTime >= MovementDuration)
+	{
+		bIsMoving = false;
 	}
 }
 

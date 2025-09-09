@@ -165,6 +165,7 @@ void UPlayerFSM::DamagedState()
 	GEngine->AddOnScreenDebugMessage(5, 1, FColor::Orange, TEXT("DamagedState"));
 
 	// 피격 조건 따라서 dodge, damaged, parry
+	
 
 	
 }
@@ -190,7 +191,6 @@ void UPlayerFSM::OnTakeDamage()
 	{
 		player->GetMesh()->GetAnimInstance()->Montage_Play(DamagedMontage);
 	}
-	
 }
 
 // 회피
@@ -201,7 +201,6 @@ void UPlayerFSM::OnDodge()
 	{
 		player->GetMesh()->GetAnimInstance()->Montage_Play(DodgeMontage);
 	}
-	
 }
 
 // 쳐내기

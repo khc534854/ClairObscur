@@ -48,7 +48,7 @@ void USkillComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	// ...
 }
 
-void USkillComponent::ExecuteSkill(int32 SkillIndex)
+void USkillComponent::ExecuteSkill(int32 SkillIndex) // enemy 위치값과 현재 위치값
 {
 	if (!OwnerCharacter) return;
 
@@ -60,7 +60,7 @@ void USkillComponent::ExecuteSkill(int32 SkillIndex)
 			UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
 			if (AnimInstance)
 			{
-																																																																																																																																																																																											
+																																																																																																																																																																																										
 				// 몽타주가 끝나면 OnMontageCompleted 함수를 호출하도록 바인딩합니다.
 				AnimInstance->OnMontageEnded.AddDynamic(this, &USkillComponent::OnMontageCompleted);
 				// 몽타주를 재생합니다.

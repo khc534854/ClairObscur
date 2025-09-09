@@ -47,7 +47,7 @@ public: // components
 	// skill component 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class USkillComponent* skillComp;
-	
+
 	// control모드
 	bool IsFreeControl() const;
 
@@ -80,8 +80,6 @@ public: // input
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UInputAction* IA_SpwanWeapon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UInputAction* IA_AttackQ;
 	
 public: // input function
 
@@ -121,11 +119,7 @@ public: // input function
 	void PlayerJump();
 
 	
-	//공격
-	UFUNCTION()
-	void PlayerAttackQ();
 
-	
 
 public: // input variables
 	UPROPERTY(EditDefaultsOnly)
@@ -139,12 +133,6 @@ public: // input variables
 	
 	UPROPERTY(EditDefaultsOnly)
 	float LargeStepHeight;
-
-
-	// 몽타주
-	// q공격
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Montage")
-	class UAnimMontage* montage_q;
 
 	
 public:

@@ -74,6 +74,8 @@ void APlayerBase::BeginPlay()
 	}
 	MoveToFloor();
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+
+	
 	
 }
 
@@ -100,7 +102,6 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		input->BindAction(IA_LookTurn, ETriggerEvent::Triggered, this, &APlayerBase::HandleTurnInput);
 		input->BindAction(IA_LookUp, ETriggerEvent::Triggered, this, &APlayerBase::HandleLookUpInput);
 		input->BindAction(IA_SpwanWeapon, ETriggerEvent::Started, this, &APlayerBase::OnToggleWeapon_Triggered);
-		input->BindAction(IA_AttackQ, ETriggerEvent::Started, this, &APlayerBase::PlayerAttackQ);
 		input->BindAction(IA_CustomJump, ETriggerEvent::Started, this, &APlayerBase::PlayerJump);
 	}
 }
@@ -218,6 +219,7 @@ void APlayerBase::PlayerJump()
 	Jump();
 }
 
+
 // 무기 소환
 void APlayerBase::SpawnWeapon()
 {
@@ -259,11 +261,6 @@ void APlayerBase::OnToggleWeapon_Triggered(const FInputActionInstance& Instance)
 
 
 
-// 공격몽타주재생
-void APlayerBase::PlayerAttackQ()
-{
-	if (!bHasWeapon) {return;}
-	PlayAnimMontage(montage_q);
-}
+
 
 

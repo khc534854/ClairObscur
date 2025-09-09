@@ -43,6 +43,9 @@ public:
 
 public:
 	// Component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USceneComponent* DefaultSceneRoot;
+	
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	class UBattleTimingComponent* BattleTimingComp;
 	
@@ -60,6 +63,12 @@ public:
 	
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	TArray<ACharacter*> BattleParticipant;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Battle")
+	TArray<ACharacter*> PlayerParty; // 아군 목록
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Battle")
+	TArray<ACharacter*> EnemyParty; // 적군 목록
 
 public:
 	// Input

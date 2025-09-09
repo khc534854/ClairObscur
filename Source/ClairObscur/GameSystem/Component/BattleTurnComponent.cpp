@@ -25,12 +25,12 @@ void UBattleTurnComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	BM = Cast<ABattleManager>(GetOwner());
 }
 
 void UBattleTurnComponent::StartBattle()
 {
-	if (!BM) return;
+	if (!BM)
+		BM = Cast<ABattleManager>(GetOwner());
 
 	CurrentTurnIndex = 0;
 	AdvanceTurn();

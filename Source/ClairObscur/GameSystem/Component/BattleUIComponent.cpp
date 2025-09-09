@@ -46,6 +46,11 @@ void UBattleUIComponent::BeginPlay()
 		SelectTargetWidget = CreateWidget<UUserWidget>(PC, SelectTargetWidgetClass);
 		AllWidgets.Add(SelectTargetWidget);
 	}
+	if (PlayerHUDWidgetClass)
+	{
+		PlayerHUDWidget = CreateWidget<UUserWidget>(PC, PlayerHUDWidgetClass);
+		PlayerHUDWidget->AddToViewport();
+	}
 
 	HideAllWidgets();
 }

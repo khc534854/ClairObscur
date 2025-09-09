@@ -5,6 +5,8 @@
 
 #include "BattleFSMComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "GameSystem/Widget/SelectSkillWidget.h"
+#include "GameSystem/Widget/WidgetComponent/SkillDetailWidget.h"
 
 
 // Sets default values for this component's properties
@@ -88,14 +90,13 @@ void UBattleUIComponent::OnFSMStateChanged(EBattleState NewState)
 			SelectActionWidget->AddToViewport();
 		}
 		break;
-    
 	case EBattleState::SelectSkill:
 		if (SelectSkillWidget)
 		{
+			auto ui = Cast<USelectSkillWidget>(SelectSkillWidget);
 			SelectSkillWidget->AddToViewport();
 		}
 		break;
-
 	case EBattleState::SelectTarget:
 		if (SelectTargetWidget)
 		{

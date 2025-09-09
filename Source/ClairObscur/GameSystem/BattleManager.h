@@ -34,7 +34,10 @@ protected:
 	void OnFSMStateChanged(enum EBattleState NewState);
 
 	UFUNCTION()
-	void OnCharacterActionFinished();
+	void OnPlayerActionFinished(int SkillIndex,  bool bInterrupted, bool bReachedSpot);
+
+	UFUNCTION()
+	void OnEnemyActionFinished();
 
 
 public:

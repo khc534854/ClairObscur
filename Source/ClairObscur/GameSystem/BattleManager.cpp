@@ -9,10 +9,14 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Camera/CameraComponent.h"
 #include "Component/BattleFSMComponent.h"
 #include "Component/BattleUIComponent.h"
 #include "Component/BattleCameraComponent.h"
 #include "CharacterComponent/SkillComponent.h"
+#include "PlayerDirectory/PlayerBase.h"
+#include "PlayerDirectory/PlayerFSM.h"
+#include "Widget/SelectSkillWidget.h"
 
 // Sets default values
 ABattleManager::ABattleManager()
@@ -45,18 +49,22 @@ void ABattleManager::BeginPlay()
 
 void ABattleManager::StartBattle()
 {
-	SetParticipant();
-	EnableInput(GetWorld()->GetFirstPlayerController()); // 인풋 주체 변경
-	BindInputActions();
-
+	// 인풋 주체 변경
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	if (PlayerController)
 	{
+		auto PlayerPawn = Cast<APlayerBase>(PlayerController->GetPawn());
+		if (PlayerPawn) // Pawn이 유효했을 경우에만 DisableInput 호출
+		{
+			PlayerPawn->DisableInput(PlayerController);
+		}
+   
 		PlayerController->SetViewTargetWithBlend(this, 1.0f);
 	}
-
-	// 전투 시작 상태로 변경
-	//BattleFSMComp->ChangeState(EBattleState::StartBattle);
+	
+	SetParticipant();
+	EnableInput(GetWorld()->GetFirstPlayerController());
+	BindInputActions();
 }
 
 void ABattleManager::EnableInput(APlayerController* PlayerController)
@@ -69,7 +77,7 @@ void ABattleManager::EnableInput(APlayerController* PlayerController)
 		{
 			if (IMC_BattleManager)
 			{
-				Subsystem->AddMappingContext(IMC_BattleManager, 0);
+				Subsystem->AddMappingContext(IMC_BattleManager, 1);
 			}
 		}
 	}
@@ -98,12 +106,10 @@ void ABattleManager::SetParticipant()
 	{
 		if (Character && Character->ActorHasTag(FName("Enemy")))
 		{
-			// "Enemy" 태그가 있으면 적군 목록에 추가합니다.
 			EnemyParty.Add(Character);
 		}
-		else if(Character)
+		else if(Character && Character->ActorHasTag(FName("Player")))
 		{
-			// 없으면 아군 목록에 추가합니다.
 			PlayerParty.Add(Character);
 		}
 	}
@@ -127,22 +133,32 @@ void ABattleManager::BindInputActions()
 	}
 }
 
-void ABattleManager::OnCharacterActionFinished()
-{
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Action Finished. Advancing to next turn."));
-
-	ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
-	if (Character)
-	{
-		USkillComponent* SkillComp = Character->FindComponentByClass<USkillComponent>();
-		if (SkillComp)
-		{
-			SkillComp->OnActionFinished.RemoveDynamic(this, &ABattleManager::OnCharacterActionFinished);
-		}
-	}
-
-	BattleTurnComp->AdvanceTurn();
-}
+// void ABattleManager::OnCharacterActionFinished(int SkillIndex,  bool bInterrupted, bool bReachedSpot)
+// {
+// 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Action Finished. Advancing to next turn."));
+//
+// 	ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
+// 	
+// 	if (Character->ActorHasTag(FName("Enemy")))
+// 	{
+// 		USkillComponent* SkillComp = Character->FindComponentByClass<USkillComponent>();
+// 		if (SkillComp)
+// 		{
+// 			SkillComp->OnActionFinished.RemoveDynamic(this, &ABattleManager::OnCharacterActionFinished);
+// 		}
+// 	}
+// 	else if (Character->ActorHasTag(FName("Player")))
+// 	{
+// 		Cast<APlayerBase>(Character)->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnCharacterActionFinished);
+// 		
+// 	}
+//
+// 	BattleTurnComp->AdvanceTurn();
+// }
+//
+// void ABattleManager::OnCharacterActionFinished()
+// {
+// }
 
 void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 {
@@ -165,6 +181,16 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			FVector CamLocation = FVector(currentCharacter->GetActorLocation()) - FVector(110, -80, -80); // 목표 위치 계산
 			FRotator CamRotation = FRotator(-15, -10, 5);
 			BattleCameraComp->StartMoveWithCurve(CamLocation, CamRotation, 5.0f);
+
+			UDataTable* SkillTable = Cast<APlayerBase>(currentCharacter)->fsm->SkillTable.LoadSynchronous();
+			if (SkillTable)
+			{
+				TArray<FSkillRow*> SkillRows;
+				SkillTable->GetAllRows(TEXT(""), SkillRows);
+				Cast<USelectSkillWidget>(BattleUIComp->SelectSkillWidget)->PopulateSkills(SkillRows);
+			}
+			
+			//Cast<USelectSkillWidget>(BattleUIComp->SelectSkillWidget)->PopulateSkills(Cast<APlayerBase>(currentCharacter)->fsm->SkillTable);
 			//BattleCameraComp->MoveCameraTo(FVector(currentCharacter->GetActorLocation()) - FVector(110, -80, -80), FRotator(-15, -10, 5));
 			break;
 		}
@@ -192,11 +218,12 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			USkillComponent* skillComp = enemy->FindComponentByClass<USkillComponent>();
 			if (skillComp)
 			{
-				skillComp->OnActionFinished.AddDynamic(this, &ABattleManager::OnCharacterActionFinished);
+				skillComp->OnActionFinished.AddDynamic(this, &ABattleManager::OnEnemyActionFinished);
 				skillComp->ExecuteSkill(FMath::RandRange(0, 3));
 			}
 		}
 			//카메라 어떻게
+			// 회피, 피격, 패링 처리
 		break;
 	}
 	case EBattleState::Waiting:
@@ -210,6 +237,32 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 	}
 }
 
+void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, bool bReachedSpot)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Action Finished. Advancing to next turn."));
+
+	ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
+	Cast<APlayerBase>(Character)->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
+	BattleTurnComp->AdvanceTurn();
+}
+
+void ABattleManager::OnEnemyActionFinished()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Action Finished. Advancing to next turn."));
+
+	ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
+	
+	if (Character->ActorHasTag(FName("Enemy")))
+	{
+		USkillComponent* SkillComp = Character->FindComponentByClass<USkillComponent>();
+		if (SkillComp)
+		{
+			SkillComp->OnActionFinished.RemoveDynamic(this, &ABattleManager::OnEnemyActionFinished);
+		}
+	}
+	BattleTurnComp->AdvanceTurn();
+}
+
 
 // Called every frame
 void ABattleManager::Tick(float DeltaTime)
@@ -219,8 +272,6 @@ void ABattleManager::Tick(float DeltaTime)
 
 void ABattleManager::QInputAction(const  FInputActionValue& Value)
 {
-
-
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
 		// Skill 1
@@ -283,6 +334,7 @@ void ABattleManager::EInputAction(const  FInputActionValue& Value)
 	if (BattleFSMComp->GetCurrentState() == EBattleState::PlayerPlayAction)
 	{
 		// Timing
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Timing"));
 		return;
 	}
 }
@@ -312,14 +364,18 @@ void ABattleManager::FInputAction(const  FInputActionValue& Value)
 		// select target
 		BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
 
-		ACharacter* CurrentCharacter = BattleTurnComp->GetCurrentTurnCharacter();
-		USkillComponent* SkillComp = CurrentCharacter->FindComponentByClass<USkillComponent>();
-		if (SkillComp)
-		{
-			// 스킬 실행 전, "액션 끝나면 보고해!" 라고 구독을 신청합니다.
-			SkillComp->OnActionFinished.AddDynamic(this, &ABattleManager::OnCharacterActionFinished);
-			SkillComp->ExecuteSkill(SelectedSkillIndex);
-		}
+		auto CurrentCharacter = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
+		CurrentCharacter->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
+		CurrentCharacter->fsm->ExecuteSkill(EnemyParty[0]->GetActorLocation(), SelectedSkillIndex);
+
+		//USkillComponent* SkillComp = CurrentCharacter->FindComponentByClass<USkillComponent>();
+		// if (SkillComp)
+		// {
+		// 	// 스킬 실행 전, "액션 끝나면 보고해!" 라고 구독을 신청합니다.
+		// 	
+		// 	SkillComp->OnActionFinished.AddDynamic(this, &ABattleManager::OnCharacterActionFinished);
+		// 	SkillComp->ExecuteSkill(SelectedSkillIndex);
+		// }
 		return;
 	}
 }

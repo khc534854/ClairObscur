@@ -12,7 +12,7 @@ struct FSkillRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText SkillName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (MultiLine = "true"))
 	FText SkillDescription;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

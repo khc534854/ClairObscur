@@ -48,10 +48,6 @@ public: // components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class USkillComponent* skillComp;
 
-	// control모드
-	bool IsFreeControl() const;
-
-	
 
 public: // input
 

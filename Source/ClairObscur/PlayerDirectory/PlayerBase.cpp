@@ -106,12 +106,6 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	}
 }
 
-bool APlayerBase::IsFreeControl() const
-{
-	return fsm && fsm->GetControlMode() == EControlMode::Free;
-}
-
-
 // 기본 이동 조작 인풋 관련 함수 
 FVector2D APlayerBase::GetMoveSpeed() const
 {
@@ -127,7 +121,6 @@ FVector2D APlayerBase::GetMoveSpeed() const
 
 void APlayerBase::MoveToFloor()
 {
-	if (!IsFreeControl()) return;
 	InitialStepHeight = GetCharacterMovement()->MaxStepHeight;
 	GetCharacterMovement()->MaxStepHeight = LargeStepHeight;
 
@@ -152,13 +145,11 @@ void APlayerBase::MoveToFloor()
 // 카메라시점 이동
 void APlayerBase::HandleLookUpInput(const struct FInputActionValue& value)
 {
-	if (!IsFreeControl()) return;
 	AddControllerPitchInput(value.Get<float>());
 }
 
 void APlayerBase::HandleTurnInput(const struct FInputActionValue& value)
 {
-	if (!IsFreeControl()) return;
 	AddControllerYawInput(value.Get<float>());
 }
 
@@ -166,7 +157,6 @@ void APlayerBase::HandleTurnInput(const struct FInputActionValue& value)
 // 위아래 이동
 void APlayerBase::HandleForwardInput(float value)
 {
-	if (!IsFreeControl()) return;
 	FRotator YawRot = UKismetMathLibrary::MakeRotator(0,0,GetControlRotation().Yaw);
 	const FVector Forward = UKismetMathLibrary::GetForwardVector(YawRot);
 	AddMovementInput(Forward, value);
@@ -174,7 +164,6 @@ void APlayerBase::HandleForwardInput(float value)
 
 void APlayerBase::MoveForward_Triggered(const FInputActionInstance& Instance)
 {
-	if (!IsFreeControl()) return; 
 	IA_Move_Forward_Action_Value = Instance.GetValue().Get<float>();
 	HandleForwardInput(GetMoveSpeed().X);
 }
@@ -183,7 +172,6 @@ void APlayerBase::MoveForward_Triggered(const FInputActionInstance& Instance)
 // 좌우 이동
 void APlayerBase::HandleRightInput(float value)
 {
-	if (!IsFreeControl()) return;
 	FRotator YawRot = UKismetMathLibrary::MakeRotator(0,0,GetControlRotation().Yaw);
 	const FVector Right = UKismetMathLibrary::GetRightVector(YawRot);
 	AddMovementInput(Right, value);
@@ -191,7 +179,6 @@ void APlayerBase::HandleRightInput(float value)
 
 void APlayerBase::MoveRight_Triggered(const FInputActionInstance& Instance)
 {
-	if (!IsFreeControl()) return; 
 	IA_Move_Right_Action_Value = Instance.GetValue().Get<float>();
 	HandleRightInput(GetMoveSpeed().Y);
 }
@@ -201,7 +188,6 @@ void APlayerBase::MoveRight_Triggered(const FInputActionInstance& Instance)
 void APlayerBase::JogOverrideAction_Triggered(
 	const FInputActionInstance& Instance)
 {
-	if (!IsFreeControl()) return; 
 	GetCharacterMovement()->MaxWalkSpeed = 427.f;
 
 }
@@ -209,13 +195,11 @@ void APlayerBase::JogOverrideAction_Triggered(
 void APlayerBase::JogOverrideAction_Finished(
 	const FInputActionInstance& Instance)
 {
-	if (!IsFreeControl()) return; 
 	GetCharacterMovement()->MaxWalkSpeed =147.f;
 }
 
 void APlayerBase::PlayerJump()
 {
-	if (!IsFreeControl()) return; 
 	Jump();
 }
 

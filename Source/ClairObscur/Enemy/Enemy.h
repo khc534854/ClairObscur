@@ -4,7 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "CharacterComponent/SkillRow.h"
 #include "Enemy.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyMovement, bool, bIsMoving);
+
+struct FSkillRow;
 
 UCLASS()
 class CLAIROBSCUR_API AEnemy : public ACharacter
@@ -29,4 +34,49 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class USkeletalMeshComponent* enemySkeletalMesh;
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UEnemyFSM* fsm;
+
+	UFUNCTION()
+	void EnemyIdle();
+	UFUNCTION()
+	void EnemyMove(FVector destination);
+	UFUNCTION()
+	void EnemyAttack();
+	UFUNCTION()
+	void EnemyDamage();
+	UFUNCTION()
+	void EnemyDie();
+
+	UFUNCTION()
+	void EnemySkill(const FVector& TargetLocation, int32 SkillIndex);
+
+	const FSkillRow* GetSkillRowByIndex(int32 Index) const;
+
+	UFUNCTION()
+	void DestroySelf();
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* attackAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* damageAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* dieAnim;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnEnemyMovement OnEnemyMovement;
+
+	UPROPERTY(EditDefaultsOnly, Category="Skill")
+	TSoftObjectPtr<UDataTable> SkillTable;
+
+
+
+	float currentTime;
+
+
 };

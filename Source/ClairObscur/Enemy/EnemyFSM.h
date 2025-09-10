@@ -9,10 +9,11 @@
 UENUM(BlueprintType)
 enum class EEnemyState : uint8
 {
-	Idle,
-	Attack,
-	Damage,
-	Die,
+	Idle    UMETA(DisplayName="Idle"),
+	Move    UMETA(DisplayName="Move"),
+	Attack  UMETA(DisplayName="Attack"),
+	Damage  UMETA(DisplayName="Damage"),
+	Die     UMETA(DisplayName="Die")
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -34,39 +35,45 @@ public:
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
-UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=FSM)
-EEnemyState _state = EEnemyState::Idle;
 
-// 컴포넌트 소유자 선언
-UPROPERTY()
-class AEnemy* me;
 
+	// 컴포넌트 소유자 선언
+	UPROPERTY()
+	class AEnemy* me;
+
+		
+	void IdleState();
+
+	// 필요속성 : 타겟
+	UPROPERTY()
+	class APlayerBase* target;
+
+	void MoveState();
+	void AttackState();
+
+	// 피격 대기 시간
+	UPROPERTY(EditAnywhere, Category=FSM)
+	float damageDelayTime = 2.0f;
+		
+	void DamageState();
+	void DieState();
+
+	// 피격시 호출될 이벤트 함수 -> 콜백
+	UPROPERTY(EditDefaultsOnly, Category=FSM)
+	int32 MAX_HP = 3;
+	int32 hp = MAX_HP;
+
+	// 필요속성 : 넉백 파워
+	UPROPERTY(EditAnywhere, Category=FSM)
+	float knockbackPower = 10;
+	FVector knockbackPos;
+	void OnDamageProcess(FVector hitDirection);
+
+	float delayTime;
+	float currentTime;
+
+	void SetEnemyState(EEnemyState NewState);
 	
-void IdleState();
-
-// 필요속성 : 타겟
-/*
-UPROPERTY()
-class Player* target;
-*/
-
-void AttackState();
-
-// 피격 대기 시간
-UPROPERTY(EditAnywhere, Category=FSM)
-float damageDelayTime = 2.0f;
-	
-void DamageState();
-void DieState();
-
-// 피격시 호출될 이벤트 함수 -> 콜백
-UPROPERTY(EditDefaultsOnly, Category=FSM)
-int32 MAX_HP = 3;
-int32 hp = MAX_HP;
-
-// 필요속성 : 넉백 파워
-UPROPERTY(EditAnywhere, Category=FSM)
-float knockbackPower = 10;
-FVector knockbackPos;
-void OnDamageProcess(FVector hitDirection);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=FSM)
+	EEnemyState CurrentState = EEnemyState::Idle;
 };

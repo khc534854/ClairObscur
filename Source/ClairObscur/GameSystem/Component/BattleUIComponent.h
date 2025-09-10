@@ -32,6 +32,7 @@ public:
 	UFUNCTION()
 	void OnFSMStateChanged(EBattleState NewState);
 
+	void ShowQTEWidget();
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> SelectActionWidgetClass;
@@ -59,6 +60,7 @@ public:
 	class UUserWidget* SelectTargetWidget;
 	UPROPERTY()
 	class UUserWidget* PlayerHUDWidget;
+
 
 	UPROPERTY()
 	TArray<UUserWidget*> AllWidgets;

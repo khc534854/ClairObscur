@@ -5,14 +5,14 @@
 
 #include "Component/BattleTimingComponent.h"
 #include "Component/BattleTurnComponent.h"
+#include "Component/BattleFSMComponent.h"
+#include "Component/BattleUIComponent.h"
+#include "Component/BattleCameraComponent.h"
+
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "Camera/CameraComponent.h"
-#include "Component/BattleFSMComponent.h"
-#include "Component/BattleUIComponent.h"
-#include "Component/BattleCameraComponent.h"
 #include "CharacterComponent/SkillComponent.h"
 #include "PlayerDirectory/PlayerBase.h"
 #include "PlayerDirectory/PlayerFSM.h"
@@ -163,6 +163,7 @@ void ABattleManager::BindInputActions()
 void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 {
 	auto currentCharacter = BattleTurnComp->GetCurrentTurnCharacter();
+	pressedQTE = false;
 	
 	switch (NewState)
 	{
@@ -204,6 +205,8 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::PlayerPlayAction:
 		{
+			BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
+
 			FVector CamLocation = FVector(-170, 340, 150);
 			FRotator CamRotation = FRotator(0, -40, 0); 
 			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
@@ -240,7 +243,6 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, bool bReachedSpot)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Action Finished. Advancing to next turn."));
-
 	ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
 	Cast<APlayerBase>(Character)->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
 	BattleTurnComp->AdvanceTurn();
@@ -334,7 +336,7 @@ void ABattleManager::EInputAction(const  FInputActionValue& Value)
 	if (BattleFSMComp->GetCurrentState() == EBattleState::PlayerPlayAction)
 	{
 		// Timing
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Timing"));
+		BattleTimingComp->OnPlayerInput();
 		return;
 	}
 }
@@ -363,19 +365,9 @@ void ABattleManager::FInputAction(const  FInputActionValue& Value)
 	{
 		// select target
 		BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
-
 		auto CurrentCharacter = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
 		CurrentCharacter->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
 		CurrentCharacter->fsm->ExecuteSkill(EnemyParty[0]->GetActorLocation(), SelectedSkillIndex);
-
-		//USkillComponent* SkillComp = CurrentCharacter->FindComponentByClass<USkillComponent>();
-		// if (SkillComp)
-		// {
-		// 	// 스킬 실행 전, "액션 끝나면 보고해!" 라고 구독을 신청합니다.
-		// 	
-		// 	SkillComp->OnActionFinished.AddDynamic(this, &ABattleManager::OnCharacterActionFinished);
-		// 	SkillComp->ExecuteSkill(SelectedSkillIndex);
-		// }
 		return;
 	}
 }
@@ -393,6 +385,20 @@ void ABattleManager::ESCInputAction(const  FInputActionValue& Value)
 		BattleFSMComp->ChangeState(EBattleState::SelectAction);
 		// back
 		return;
+	}
+}
+
+void ABattleManager::OnTimingCheckResult(bool bSuccess)
+{
+	if (bSuccess)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Timing Success"));
+		// TODO: 데미지 증가 등 성공 처리
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Timing Fail"));
+		// TODO: 실패 처리
 	}
 }
 

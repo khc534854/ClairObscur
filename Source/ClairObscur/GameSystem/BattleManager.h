@@ -97,7 +97,10 @@ public:
 	void   RInputAction(const struct FInputActionValue& Value);
 	void   FInputAction(const struct FInputActionValue& Value);
 	void ESCInputAction(const struct FInputActionValue& Value);
+	void OnTimingCheckResult(bool bSuccess);
 
 	int32 SelectedSkillIndex;
+	bool pressedQTE = false;
+	
 	
 };

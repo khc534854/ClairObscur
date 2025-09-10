@@ -5,10 +5,13 @@
 
 #include "BattleFSMComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "GameSystem/BattleManager.h"
 #include "GameSystem/Widget/SelectSkillWidget.h"
+#include "GameSystem/Widget/WidgetComponent/QTEWidget.h"
 #include "GameSystem/Widget/WidgetComponent/SkillDetailWidget.h"
 
 
+class ABattleManager;
 // Sets default values for this component's properties
 UBattleUIComponent::UBattleUIComponent()
 {
@@ -81,7 +84,7 @@ void UBattleUIComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 void UBattleUIComponent::OnFSMStateChanged(EBattleState NewState)
 {
 	HideAllWidgets();
-
+	
 	switch (NewState)
 	{
 	case EBattleState::SelectAction:
@@ -106,13 +109,15 @@ void UBattleUIComponent::OnFSMStateChanged(EBattleState NewState)
 	case EBattleState::PlayerPlayAction:
 		if (TimingWidget)
 		{
+			ShowQTEWidget();
 			TimingWidget->AddToViewport();
 		}
 		break;
 	case EBattleState::EnemyPlayAction:
 		if (TimingWidget)
 		{
-			TimingWidget->AddToViewport();
+			//ShowQTEWidget();
+			//TimingWidget->AddToViewport();
 		}
 		break;
 	case EBattleState::StartBattle:
@@ -124,8 +129,20 @@ void UBattleUIComponent::OnFSMStateChanged(EBattleState NewState)
 	case EBattleState::NotBattle:
 		break;
 	default: ;
-
-		// ... 기타 상태에 대한 처리
 	}
 }
+
+void UBattleUIComponent::ShowQTEWidget()
+{
+	if (TimingWidget)
+	{
+		ABattleManager* OwnerManager = GetOwner<ABattleManager>();
+		if (OwnerManager && OwnerManager->BattleTimingComp)
+		{
+			Cast<UQTEWidget>(TimingWidget)->SetOwnerTimingComponent(OwnerManager->BattleTimingComp);
+		}
+	}
+}
+
+
 

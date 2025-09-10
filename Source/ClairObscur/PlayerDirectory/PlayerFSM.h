@@ -5,23 +5,24 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "CharacterComponent/SkillRow.h"
+#include "Animation/AnimInstance.h" 
 #include "PlayerFSM.generated.h"
 
 
 struct FSkillRow;
 
-UENUM(BlueprintType)
-enum class EControlMode : uint8 { Free, Commanded };
 
 UENUM(BlueprintType)
 enum class ECommandedPlayerState : uint8
 {
 	CombatIdle,
+	SelectAction,
 	SelectSkill,
 	Attack,
 	Damaged,
 	Die
 };
+
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
@@ -55,41 +56,36 @@ public:
 	UPROPERTY(EditAnywhere)
 	class APlayerBase* player;
 	
-	// 컨트롤모드 및 디폴트 상태 설정
-	UPROPERTY(BlueprintReadOnly)
-	EControlMode ControlMode = EControlMode::Free;
+	// 디폴트 상태 설정
 	UPROPERTY(BlueprintReadOnly)
 	ECommandedPlayerState CurrentState = ECommandedPlayerState::CombatIdle;
 
-	// 컨트롤 모드 및 상태 get, set 함수
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsInCombat = false;
+	
+	// 전투 모드 전환
+	void EnterCombatMode();
+	void ExitCombatMode();
+	
+	// 상태 get, set 함수
+	
 	// set
 	UFUNCTION(BlueprintCallable)
-	void SetControlMode(EControlMode Mode)
-	{
-		ControlMode = Mode;
-	}
-	UFUNCTION(BlueprintCallable)
-	void SetCommandedState(ECommandedPlayerState NewState) {
-		if (ControlMode == EControlMode::Commanded) {
-			CurrentState = NewState;
-		}
-	}
+	void SetCommandedState(ECommandedPlayerState NewState)
+	{ CurrentState = NewState;}
 
 	// get
-	UFUNCTION(BlueprintCallable)
-	EControlMode GetControlMode() const
-	{ return ControlMode; }
-
 	UFUNCTION(BlueprintCallable)
 	ECommandedPlayerState GetCommandedState() const
 	{ return CurrentState; }
 	
 	
 	//FSM 상태 함수
-
 	UFUNCTION(BlueprintCallable, Category = "State")
 	void CombatIdleState();
+	UFUNCTION(BlueprintCallable, Category = "State")
+	void SelectActionState();
 	UFUNCTION(BlueprintCallable, Category = "State")
 	void SelectSkillState();
 	UFUNCTION(BlueprintCallable, Category = "State")
@@ -101,6 +97,13 @@ public:
 
 
 	//피격, 회피, 쳐내기(막기)  함수
+	// 함수들 담겨있는 배열
+	TFunction<void()> SelectDamagedFunction;
+
+	// 선택된 함수 포인터
+	using FFSMAction = void (UPlayerFSM::*)();
+	FFSMAction       SelectedAction = nullptr;
+	
 	UFUNCTION(BlueprintCallable, Category = "State")
 	void OnTakeDamage();
 	UFUNCTION(BlueprintCallable, Category = "State")
@@ -123,13 +126,14 @@ public:
 
 	UFUNCTION()
 	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-
 	
 	const FSkillRow* GetSkillRowByIndex(int32 Index) const;
 
 	UPROPERTY(BlueprintAssignable, Category="Skill")
 	FOnSkillSequenceCompleted OnSkillSequenceCompleted;
 
+
+	
 	// 이번 시퀀스에서 공격 지점까지 실제 도달했는지
 	bool bReachedSpotThisRun = false;
 
@@ -145,15 +149,20 @@ public:
 	bool    bMoveOut = false;       // 적에게 가는 중
 	bool    bReturn  = false;       // 돌아오는 중
 	int32   PendingSkillIndex = INDEX_NONE; // 도착 후 쓸 스킬
+
+	// ABP
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TSubclassOf<UAnimInstance> CombatAnimClass;
+
+	UPROPERTY(EditAnywhere, Category="Animation")
+	TSubclassOf<UAnimInstance> FreeAnimClass;
+	
+
 	
 
 	// 몽타주
-
 	UPROPERTY(EditAnywhere, Category="Montage")
-	UAnimMontage* CombatIdleMontage;
-
-	UPROPERTY(EditAnywhere, Category="Montage")
-	UAnimMontage* SelectSkillMontage;
+	UAnimMontage* IntroMontage; 
 	
 	UPROPERTY(EditAnywhere, Category="Montage")
 	UAnimMontage* DamagedMontage;
@@ -166,8 +175,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="Montage")
 	UAnimMontage* CounterMontage;
-
-
+	
 	UPROPERTY(EditAnywhere, Category="Montage")
 	UAnimMontage* DieMontage;
 };

@@ -34,6 +34,7 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
 
 	// ...
 
+	if (!bIsInCombat) {return;}
 	// 상태 변경
 	switch (CurrentState)
 	{
@@ -47,7 +48,7 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
 		AttackState();
 		break;
 	case ECommandedPlayerState::Damaged:
-		DamagedState();
+		DamagedState();  
 		break;
 	case ECommandedPlayerState::Die:
 		DieState();
@@ -57,10 +58,7 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
 	// 에디터 화면에 현재 상태 출력
 	FString stateStr = UEnum::GetValueAsString(CurrentState);
 	GEngine->AddOnScreenDebugMessage(0,1,FColor::Cyan, stateStr);
-
-	FString modeStr = UEnum::GetValueAsString(ControlMode);
-	GEngine->AddOnScreenDebugMessage(1, 1, FColor::Black, modeStr);
-
+	
 
 	 if (bMoveOut || bReturn)
     {
@@ -126,53 +124,82 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
     }
 }
 
+void UPlayerFSM::EnterCombatMode()
+{
+	bIsInCombat = true;
+	USkeletalMeshComponent* Mesh = player->GetMesh();
+	Mesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+
+	// 전투모드 ABP로 변경
+	if (CombatAnimClass)
+	{
+		Mesh->SetAnimInstanceClass(CombatAnimClass);
+	}
+	
+	// 전투 모드 처음 들어가면 나오는 애니메이션
+	if (IntroMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
+	{
+		player->GetMesh()->GetAnimInstance()->Montage_Play(IntroMontage);
+	}
+	
+	// 무기 스폰
+	player->SpawnWeapon();
+}
+
+void UPlayerFSM::ExitCombatMode()
+{
+	bIsInCombat = false;
+	
+	USkeletalMeshComponent* Mesh = player->GetMesh();
+	Mesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	
+	// 맵이동 ABP로 변경
+	if (FreeAnimClass)
+	{
+		Mesh->SetAnimInstanceClass(FreeAnimClass);
+	}
+	
+	// 무기 삭제
+    player->DestroyWeapon();
+    	
+}
+
+
 // 상태 함수
 void UPlayerFSM::CombatIdleState()
 {
-	if (player->IsFreeControl()) { return; }
 	GEngine->AddOnScreenDebugMessage(2, 1, FColor::Orange, TEXT("CombatIdleState"));
+}
 
-	if (CombatIdleMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
-	{
-		player->GetMesh()->GetAnimInstance()->Montage_Play(CombatIdleMontage);
-	}
+void UPlayerFSM::SelectActionState()
+{
 	
 }
 
+
 void UPlayerFSM::SelectSkillState()
 {
-	if (player->IsFreeControl()) { return; }
 	GEngine->AddOnScreenDebugMessage(3, 1, FColor::Orange, TEXT("SelectSkillState"));
-
-	if (SelectSkillMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
-	{
-		player->GetMesh()->GetAnimInstance()->Montage_Play(SelectSkillMontage);
-	}
-	
 }
 
 
 void UPlayerFSM::AttackState()
 {
-	if (player->IsFreeControl()) { return; }
 	GEngine->AddOnScreenDebugMessage(4, 1, FColor::Orange, TEXT("AttackState"));
 }
 
 
 void UPlayerFSM::DamagedState()
 {
-	if (player->IsFreeControl()) { return; }
 	GEngine->AddOnScreenDebugMessage(5, 1, FColor::Orange, TEXT("DamagedState"));
 
 	// 피격 조건 따라서 dodge, damaged, parry
-	
-
-	
+	SelectDamagedFunction = [this](){if (SelectedAction) (this->*SelectedAction)();};
+	if (SelectDamagedFunction) SelectDamagedFunction();
 }
 
 void UPlayerFSM::DieState()
 {
-	if (player->IsFreeControl()) { return; }
 	GEngine->AddOnScreenDebugMessage(6, 1, FColor::Orange, TEXT("DieState"));
 
 	if (DieMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
@@ -186,7 +213,6 @@ void UPlayerFSM::DieState()
 // 피격
 void UPlayerFSM::OnTakeDamage()
 {
-	if (player->IsFreeControl()) { return; }
 	if (DamagedMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
 	{
 		player->GetMesh()->GetAnimInstance()->Montage_Play(DamagedMontage);
@@ -196,7 +222,6 @@ void UPlayerFSM::OnTakeDamage()
 // 회피
 void UPlayerFSM::OnDodge()
 {
-	if (player->IsFreeControl()) { return; }
 	if (DodgeMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
 	{
 		player->GetMesh()->GetAnimInstance()->Montage_Play(DodgeMontage);
@@ -206,7 +231,6 @@ void UPlayerFSM::OnDodge()
 // 쳐내기
 void UPlayerFSM::OnParry()
 {
-	if (player->IsFreeControl()) { return; }
 	if (ParryMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
 	{
 		player->GetMesh()->GetAnimInstance()->Montage_Play(ParryMontage);
@@ -216,7 +240,6 @@ void UPlayerFSM::OnParry()
 void UPlayerFSM::OnCounter()
 {
 	// 쳐내기를 모두 성공하면 카운터가 발생 (무조건)
-	if (player->IsFreeControl()){ return; }
 	if (CounterMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
 	{
 		player->GetMesh()->GetAnimInstance()->Montage_Play(CounterMontage);

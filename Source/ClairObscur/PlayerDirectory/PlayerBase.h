@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Character.h"
 #include "PlayerBase.generated.h"
 
@@ -48,10 +49,6 @@ public: // components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class USkillComponent* skillComp;
 
-	// control모드
-	bool IsFreeControl() const;
-
-	
 
 public: // input
 
@@ -159,9 +156,6 @@ public:
 	
 	UFUNCTION()
 	void OnToggleWeapon_Triggered(const FInputActionInstance& Instance);
-
-	
-
 
 };
 

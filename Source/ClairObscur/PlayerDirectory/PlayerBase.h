@@ -157,5 +157,18 @@ public:
 	UFUNCTION()
 	void OnToggleWeapon_Triggered(const FInputActionInstance& Instance);
 
+
+public:
+	UPROPERTY(EditAnywhere, Category = "Stat")
+	int32 maxHP = 150;
+	
+	UPROPERTY(EditAnywhere, Category = "Stat")
+	int32 currentHP;
+
+	UPROPERTY(EditAnywhere, Category = "Stat")
+	int32 maxAP = 9;
+
+	UPROPERTY(EditAnywhere, Category = "Stat")
+	int32 currentAP;
 };
 

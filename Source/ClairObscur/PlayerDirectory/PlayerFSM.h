@@ -65,7 +65,10 @@ public:
 	bool bIsInCombat = false;
 	
 	// 전투 모드 전환
+	UFUNCTION(BlueprintCallable)
 	void EnterCombatMode();
+
+	UFUNCTION(BlueprintCallable)
 	void ExitCombatMode();
 	
 	// 상태 get, set 함수

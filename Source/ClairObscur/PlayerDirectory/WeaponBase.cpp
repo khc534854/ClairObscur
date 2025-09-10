@@ -13,7 +13,7 @@ AWeaponBase::AWeaponBase()
 
 	attachpoint =CreateDefaultSubobject<USceneComponent>(TEXT("Attachpoint"));
 	SetRootComponent(attachpoint);
-	WeaponMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMeshComp"));
+	WeaponMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMeshComp"));
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComp"));
 	BoxComp->SetupAttachment(RootComponent);
 	WeaponMeshComp->SetupAttachment(RootComponent);

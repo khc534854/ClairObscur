@@ -26,7 +26,7 @@ public:
 public: // Components
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UStaticMeshComponent* WeaponMeshComp;
+	class USkeletalMeshComponent* WeaponMeshComp;
 
 	UPROPERTY(VisibleDefaultsOnly)
 	class UBoxComponent* BoxComp;

@@ -18,6 +18,12 @@ class CLAIROBSCUR_API UPlayerAnimInstance : public UAnimInstance
 public:
 	UPROPERTY(BlueprintReadOnly, Category="FSM")
 	ECommandedPlayerState AnimFsmState = ECommandedPlayerState::CombatIdle;
+
+	UPROPERTY(BlueprintReadOnly, Category="FSM")
+	bool    bMoveOut = false;      
+
+	UPROPERTY(BlueprintReadOnly, Category="FSM")
+	bool    bReturn  = false; 
 	
 	TWeakObjectPtr<class APlayerBase> OwnerPlayer;
 

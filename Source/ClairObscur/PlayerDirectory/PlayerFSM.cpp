@@ -65,7 +65,10 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
         MoveT += DeltaTime;
         const float Alpha = FMath::Clamp(MoveT / MoveDuration, 0.f, 1.f);
         const FVector P = FMath::Lerp(MoveStart, MoveTarget, Alpha);
+	 	
+	 	
 
+	 	
         // 충돌 고려해서 이동
         player->SetActorLocation(P, true);
 

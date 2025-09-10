@@ -148,8 +148,12 @@ public:
 	FRotator StartRotation;
 	float   MoveT = 0.f;            // 진행 시간
 	float   MoveDuration = 0.f;     // 총 이동 시간
-	float   MoveSpeed = 800.f;      // uu/s, 취향대로
+	float   MoveSpeed = 1000.f;      // uu/s
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation")
 	bool    bMoveOut = false;       // 적에게 가는 중
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation")
 	bool    bReturn  = false;       // 돌아오는 중
 	int32   PendingSkillIndex = INDEX_NONE; // 도착 후 쓸 스킬
 
@@ -166,6 +170,9 @@ public:
 	// 몽타주
 	UPROPERTY(EditAnywhere, Category="Montage")
 	UAnimMontage* IntroMontage; 
+
+	UPROPERTY(EditAnywhere, Category="Montage")
+	UAnimMontage* StartAttackMontage;
 	
 	UPROPERTY(EditAnywhere, Category="Montage")
 	UAnimMontage* DamagedMontage;

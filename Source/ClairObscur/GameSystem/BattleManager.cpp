@@ -17,6 +17,8 @@
 #include "PlayerDirectory/PlayerBase.h"
 #include "PlayerDirectory/PlayerFSM.h"
 #include "Widget/SelectSkillWidget.h"
+#include "Enemy/Enemy.h"
+#include "Enemy/EnemyFSM.h"
 
 // Sets default values
 ABattleManager::ABattleManager()
@@ -215,19 +217,47 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::EnemyPlayAction:
 	{
-		auto enemy = BattleTurnComp->GetCurrentTurnCharacter();
-		if (enemy)
+		AEnemy* CurrentEnemy = Cast<AEnemy>(currentCharacter);
+		if (CurrentEnemy)
 		{
-			USkillComponent* skillComp = enemy->FindComponentByClass<USkillComponent>();
-			if (skillComp)
+			// 1. 적 FSM에게 공격 상태로 전환하라고 직접 명령합니다.
+			//    (EnemyFSM의 Tick 로직 대신 BattleManager가 흐름을 제어)
+			if (CurrentEnemy->fsm)
 			{
-				skillComp->OnActionFinished.AddDynamic(this, &ABattleManager::OnEnemyActionFinished);
-				skillComp->ExecuteSkill(FMath::RandRange(0, 3));
+				CurrentEnemy->fsm->SetEnemyState(EEnemyState::Attack);
 			}
+
+			// 2. 공격 애니메이션 길이를 가져옵니다.
+			float AttackAnimLength = 0.f;
+			if (CurrentEnemy->attackAnim) // AEnemy에 기본 공격 몽타주가 할당되어 있다고 가정
+			{
+				AttackAnimLength = CurrentEnemy->attackAnim->GetPlayLength();
+			}
+
+			// 3. 애니메이션 길이가 끝나면 턴을 넘기도록 타이머를 설정합니다.
+			FTimerHandle EnemyTurnTimer;
+			GetWorld()->GetTimerManager().SetTimer(
+				EnemyTurnTimer,
+				this,
+				&ABattleManager::OnEnemyActionFinished, // 턴 넘기는 함수
+				AttackAnimLength, // 애니메이션 길이만큼 기다림
+				false);
 		}
-			//카메라 어떻게
-			// 회피, 피격, 패링 처리
 		break;
+
+		//auto enemy = BattleTurnComp->GetCurrentTurnCharacter();
+		//if (enemy)
+		//{
+		//	USkillComponent* skillComp = enemy->FindComponentByClass<USkillComponent>();
+		//	if (skillComp)
+		//	{
+		//		skillComp->OnActionFinished.AddDynamic(this, &ABattleManager::OnEnemyActionFinished);
+		//		skillComp->ExecuteSkill(FMath::RandRange(0, 3));
+		//	}
+		//}
+		//	//카메라 어떻게
+		//	// 회피, 피격, 패링 처리
+		//break;
 	}
 	case EBattleState::Waiting:
 		break;
@@ -250,18 +280,18 @@ void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, b
 
 void ABattleManager::OnEnemyActionFinished()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Action Finished. Advancing to next turn."));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Action Finished. Advancing to next turn."));
 
-	ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
-	
-	if (Character->ActorHasTag(FName("Enemy")))
-	{
-		USkillComponent* SkillComp = Character->FindComponentByClass<USkillComponent>();
-		if (SkillComp)
-		{
-			SkillComp->OnActionFinished.RemoveDynamic(this, &ABattleManager::OnEnemyActionFinished);
-		}
-	}
+	//ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
+	//
+	//if (Character->ActorHasTag(FName("Enemy")))
+	//{
+	//	USkillComponent* SkillComp = Character->FindComponentByClass<USkillComponent>();
+	//	if (SkillComp)
+	//	{
+	//		SkillComp->OnActionFinished.RemoveDynamic(this, &ABattleManager::OnEnemyActionFinished);
+	//	}
+	//}
 	BattleTurnComp->AdvanceTurn();
 }
 
@@ -365,10 +395,28 @@ void ABattleManager::FInputAction(const  FInputActionValue& Value)
 	{
 		// select target
 		BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
+
 		auto CurrentCharacter = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
-		CurrentCharacter->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
-		CurrentCharacter->fsm->ExecuteSkill(EnemyParty[0]->GetActorLocation(), SelectedSkillIndex);
-		return;
+		if (CurrentCharacter && CurrentCharacter->fsm)
+		{
+			CurrentCharacter->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
+
+			// TODO: 현재 타겟팅된 적을 가져오는 로직 필요
+			AEnemy* TargetEnemy = Cast<AEnemy>(EnemyParty[0]); // 임시로 첫 번째 적을 타겟으로 지정
+
+			if (TargetEnemy)
+			{
+				CurrentCharacter->fsm->ExecuteSkill(TargetEnemy->GetActorLocation(), SelectedSkillIndex);
+
+				// 3. (임시) 스킬 사용 즉시 타겟에게 데미지를 입히라고 명령
+				// 원래는 플레이어의 공격 애니메이션 중간에 호출되어야 합니다.
+				TargetEnemy->EnemyDamage();
+			}
+		}
+		//auto CurrentCharacter = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
+		//CurrentCharacter->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
+		//CurrentCharacter->fsm->ExecuteSkill(EnemyParty[0]->GetActorLocation(), SelectedSkillIndex);
+		//return;
 	}
 }
 

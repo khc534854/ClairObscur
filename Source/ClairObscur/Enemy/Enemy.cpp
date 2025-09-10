@@ -3,6 +3,10 @@
 
 #include "Enemy.h"
 
+#include "EnemyFSM.h"
+
+#include "CharacterComponent/SkillRow.h"
+
 
 // Sets default values
 AEnemy::AEnemy()
@@ -10,29 +14,46 @@ AEnemy::AEnemy()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	enemySkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("enemySkeletalMesh"));
-	enemySkeletalMesh->SetupAttachment(GetRootComponent());
+	/*enemySkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("enemySkeletalMesh"));
+	enemySkeletalMesh->SetupAttachment(GetRootComponent());*/
 
 	
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh>TempEnemySkeletal(TEXT("/Script/Engine.SkeletalMesh'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Skins/Tier_1_5/MaskedReaper/Mesh/Sevarog_MaskedReaper_GDC.Sevarog_MaskedReaper_GDC'"));
 
 	if (TempEnemySkeletal.Succeeded())
 	{
-		enemySkeletalMesh->SetSkeletalMesh(TempEnemySkeletal.Object);
-		enemySkeletalMesh->SetRelativeLocation(FVector(0,0,0));
-		enemySkeletalMesh->SetRelativeScale3D(FVector(1));
-		enemySkeletalMesh->SetRelativeRotation(FRotator(0, -90, 0));
+		GetMesh()->SetSkeletalMesh(TempEnemySkeletal.Object);
+		GetMesh()->SetRelativeLocation(FVector(0,0,0));
+		GetMesh()->SetRelativeScale3D(FVector(1));
+		GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
 
 		static ConstructorHelpers::FClassFinder<UAnimInstance>TempAnimBP(TEXT("/Script/Engine.AnimBlueprint'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Sevarog_AnimBlueprint.Sevarog_AnimBlueprint_C'"));
 
 		if (TempAnimBP.Succeeded())
 		{
-			enemySkeletalMesh->SetAnimInstanceClass(TempAnimBP.Class);
-		
+			GetMesh()->SetAnimInstanceClass(TempAnimBP.Class);
 		}
-	
-		
 	}
+
+	fsm = CreateDefaultSubobject<UEnemyFSM>(TEXT("FSM"));
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> attackMontage(TEXT("/Script/Engine.AnimMontage'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Animations/Swing1_Medium_Montage.Swing1_Medium_Montage'"));
+	if (attackMontage.Succeeded())
+	{
+		attackAnim = attackMontage.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> damageMontage(TEXT("/Script/Engine.AnimMontage'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Animations/Hitreact_Front_Montage.Hitreact_Front_Montage'"));
+	if (damageMontage.Succeeded())
+	{
+		damageAnim = damageMontage.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> dieMontage(TEXT("/Script/Engine.AnimMontage'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Animations/Death_front_Montage.Death_front_Montage'"));
+	if (dieMontage.Succeeded())
+	{
+		dieAnim = dieMontage.Object;
+	}
+	
+
 
 
 }
@@ -41,7 +62,9 @@ AEnemy::AEnemy()
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+
 	
+
 }
 
 // Called every frame
@@ -56,3 +79,157 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+void AEnemy::EnemyIdle()
+{
+}
+
+void AEnemy::EnemyMove(FVector destination)
+{
+}
+
+void AEnemy::EnemyAttack()
+{
+	EnemySkill(FVector(0), 2);
+}
+
+void AEnemy::EnemyDamage()
+{
+	if (damageAnim && GetMesh())
+	{	
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			float Duration = AnimInstance->Montage_Play(damageAnim);
+
+			if (Duration > 0.f)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Montage %s is playing!"), *damageAnim->GetName());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Failed to play montage %s"), *damageAnim->GetName());
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No AnimInstance found on enemySkeletalMesh!"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No montage assigned!"));
+	}
+}
+
+void AEnemy::EnemyDie()
+{
+	if (dieAnim && GetMesh())
+	{	
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			float Duration = AnimInstance->Montage_Play(dieAnim);
+			currentTime += GetWorld()->DeltaTimeSeconds;
+			if (currentTime > Duration)
+				Destroy();
+
+			if (Duration > 0.f)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Montage %s is playing!"), *dieAnim->GetName());
+				FTimerHandle TimerHandle;
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AEnemy::DestroySelf, Duration, false);
+			
+				
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Failed to play montage %s"), *dieAnim->GetName());
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No AnimInstance found on enemySkeletalMesh!"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No montage assigned!"));
+	}
+	
+	
+}
+
+void AEnemy::EnemySkill(const FVector& TargetLocation, int32 SkillIndex)
+{
+	if (const FSkillRow* Row = GetSkillRowByIndex(SkillIndex))
+	{
+		if (UAnimMontage* Montage = Row->SkillMontage.LoadSynchronous())
+		{
+			if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+			{
+				float Duration = AnimInstance->Montage_Play(Montage);
+
+				if (Duration > 0.f)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Playing montage from DataTable: %s"), *Montage->GetName());
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Failed to play montage %s"), *Montage->GetName());
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("No AnimInstance on mesh!"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SkillRow %d has no valid montage!"), SkillIndex);
+		}
+		
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid SkillIndex %d"), SkillIndex);
+	
+	}
+
+}
+
+
+
+/*
+{
+	if (const FSkillRow* Row = GetSkillRowByIndex(SkillIndex))
+	{
+		if (UAnimMontage* M = Row->SkillMontage.LoadSynchronous())
+		{
+			if (UAnimInstance* Anim = GetMesh()->GetAnimInstance())
+			{
+				// 끝나면 복귀 시작
+				Anim->Montage_Play(M);
+				return; // 복귀는 몽타주 끝나고
+			}
+		}
+	}
+
+}
+*/
+
+const FSkillRow* AEnemy::GetSkillRowByIndex(int32 Index) const
+{
+	UDataTable* Table = SkillTable.LoadSynchronous();
+	if (!Table){return nullptr;}
+
+	// 매 호출마다 RowNames 가져오기 
+	const TArray<FName> RowNames = Table->GetRowNames();
+	if (!RowNames.IsValidIndex(Index)) {return nullptr;}
+
+	static const FString Ctx = TEXT("GetSkillRowByIndex");
+	return Table->FindRow<FSkillRow>(RowNames[Index], Ctx);
+}
+
+
+void AEnemy::DestroySelf()
+{
+	Destroy();
+}

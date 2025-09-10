@@ -41,7 +41,8 @@ public:
 	UPROPERTY()
 	class AEnemy* me;
 
-		
+
+
 	void IdleState();
 
 	// 필요속성 : 타겟
@@ -76,4 +77,14 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=FSM)
 	EEnemyState CurrentState = EEnemyState::Idle;
+
+
+	UFUNCTION()
+	void OnParryWindowOpened();
+
+	UFUNCTION()
+	void OnParryWindowClosed();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Parry")
+	bool bCanBeParried = false;
 };

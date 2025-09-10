@@ -10,6 +10,8 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyMovement, bool, bIsMoving);
 
 struct FSkillRow;
+class UEnemyAnimInstance;
+
 
 UCLASS()
 class CLAIROBSCUR_API AEnemy : public ACharacter
@@ -77,6 +79,18 @@ public:
 
 
 	float currentTime;
+
+	/*UFUNCTION()
+	void OnEnemyNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
+
+	UFUNCTION()
+	void OnEnemyNotifyEnd(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);*/
+
+	UPROPERTY(VisibleAnywhere, Category="Combat")
+	bool bCanBeParried = false;
+
+	UPROPERTY(Transient)
+	UEnemyAnimInstance* AnimInst = nullptr;
 
 
 };

@@ -135,3 +135,13 @@ void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 		}
 	}
 }
+
+void UEnemyFSM::OnParryWindowOpened()
+{
+	bCanBeParried = true;  // 파리 가능 상태 시작
+}
+
+void UEnemyFSM::OnParryWindowClosed()
+{
+	bCanBeParried = false; // 파리 가능 상태 종료
+}

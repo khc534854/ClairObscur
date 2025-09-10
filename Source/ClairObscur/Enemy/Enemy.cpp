@@ -3,6 +3,7 @@
 
 #include "Enemy.h"
 
+#include "EnemyAnimInstance.h"
 #include "EnemyFSM.h"
 
 #include "CharacterComponent/SkillRow.h"
@@ -27,7 +28,7 @@ AEnemy::AEnemy()
 		GetMesh()->SetRelativeScale3D(FVector(1));
 		GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
 
-		static ConstructorHelpers::FClassFinder<UAnimInstance>TempAnimBP(TEXT("/Script/Engine.AnimBlueprint'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Sevarog_AnimBlueprint.Sevarog_AnimBlueprint_C'"));
+		static ConstructorHelpers::FClassFinder<UEnemyAnimInstance>TempAnimBP(TEXT("/Script/Engine.AnimBlueprint'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Sevarog_AnimBlueprint.Sevarog_AnimBlueprint_C'"));
 
 		if (TempAnimBP.Succeeded())
 		{
@@ -63,8 +64,14 @@ void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
-
+	if (GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		AnimInst = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance());
+		if (AnimInst)
+		{
+			AnimInst->OwnerEnemy = this; // 자기 자신 연결
+		}
+	}
 }
 
 // Called every frame
@@ -96,9 +103,9 @@ void AEnemy::EnemyDamage()
 {
 	if (damageAnim && GetMesh())
 	{	
-		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		if (AnimInst)
 		{
-			float Duration = AnimInstance->Montage_Play(damageAnim);
+			float Duration = AnimInst->Montage_Play(damageAnim);
 
 			if (Duration > 0.f)
 			{
@@ -124,9 +131,9 @@ void AEnemy::EnemyDie()
 {
 	if (dieAnim && GetMesh())
 	{	
-		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		if (AnimInst)
 		{
-			float Duration = AnimInstance->Montage_Play(dieAnim);
+			float Duration = AnimInst->Montage_Play(dieAnim);
 			currentTime += GetWorld()->DeltaTimeSeconds;
 			if (currentTime > Duration)
 				Destroy();
@@ -163,9 +170,9 @@ void AEnemy::EnemySkill(const FVector& TargetLocation, int32 SkillIndex)
 	{
 		if (UAnimMontage* Montage = Row->SkillMontage.LoadSynchronous())
 		{
-			if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+			if (AnimInst)
 			{
-				float Duration = AnimInstance->Montage_Play(Montage);
+				float Duration = AnimInst->Montage_Play(Montage);
 
 				if (Duration > 0.f)
 				{
@@ -195,8 +202,6 @@ void AEnemy::EnemySkill(const FVector& TargetLocation, int32 SkillIndex)
 
 }
 
-
-
 /*
 {
 	if (const FSkillRow* Row = GetSkillRowByIndex(SkillIndex))
@@ -211,7 +216,6 @@ void AEnemy::EnemySkill(const FVector& TargetLocation, int32 SkillIndex)
 			}
 		}
 	}
-
 }
 */
 
@@ -228,8 +232,29 @@ const FSkillRow* AEnemy::GetSkillRowByIndex(int32 Index) const
 	return Table->FindRow<FSkillRow>(RowNames[Index], Ctx);
 }
 
-
 void AEnemy::DestroySelf()
 {
 	Destroy();
 }
+
+/*void AEnemy::OnEnemyNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	if (NotifyName == "ParryWindow_Begin")
+	{
+		// 예: 공격 판정, 막기 가능 등 처리
+		bCanBeParried = true;
+		fsm->OnParryWindowOpened();
+	}
+}
+
+void AEnemy::OnEnemyNotifyEnd(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	if (NotifyName == "ParryWindow_End")
+	{
+		// 막기 종료 처리
+		bCanBeParried = false;
+		fsm->OnParryWindowClosed();
+	}
+}*/
+
+

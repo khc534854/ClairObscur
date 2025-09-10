@@ -81,6 +81,10 @@ void APlayerBase::BeginPlay()
 	MoveToFloor();
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 
+	// 체력, AP 초기화
+	currentHP = maxHP;
+	currentAP = maxAP;
+	
 	
 	
 }

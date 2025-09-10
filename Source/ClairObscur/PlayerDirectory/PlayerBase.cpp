@@ -10,6 +10,7 @@
 #include "PlayerDirectory/WeaponBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameplayTagContainer.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default value
@@ -53,6 +54,11 @@ APlayerBase::APlayerBase()
 
 	// skillComp
 	skillComp = CreateDefaultSubobject<USkillComponent>(TEXT("SkillComp"));
+
+
+	// tag 붙이기
+	Tags.Append({"BattlePossible", "Player"});
+	
 }
 
 // Called when the game starts or when spawned

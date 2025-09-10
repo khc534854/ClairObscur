@@ -129,6 +129,8 @@ void UPlayerFSM::EnterCombatMode()
 	bIsInCombat = true;
 	USkeletalMeshComponent* Mesh = player->GetMesh();
 	Mesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+
+	// 전투모드 ABP로 변경
 	if (CombatAnimClass)
 	{
 		Mesh->SetAnimInstanceClass(CombatAnimClass);
@@ -139,18 +141,27 @@ void UPlayerFSM::EnterCombatMode()
 	{
 		player->GetMesh()->GetAnimInstance()->Montage_Play(IntroMontage);
 	}
+	
+	// 무기 스폰
+	player->SpawnWeapon();
 }
 
 void UPlayerFSM::ExitCombatMode()
 {
 	bIsInCombat = false;
-
+	
 	USkeletalMeshComponent* Mesh = player->GetMesh();
 	Mesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	
+	// 맵이동 ABP로 변경
 	if (FreeAnimClass)
 	{
 		Mesh->SetAnimInstanceClass(FreeAnimClass);
 	}
+	
+	// 무기 삭제
+    player->DestroyWeapon();
+    	
 }
 
 

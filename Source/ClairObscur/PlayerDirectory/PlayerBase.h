@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Character.h"
 #include "PlayerBase.generated.h"
 
@@ -155,9 +156,6 @@ public:
 	
 	UFUNCTION()
 	void OnToggleWeapon_Triggered(const FInputActionInstance& Instance);
-
-	
-
 
 };
 

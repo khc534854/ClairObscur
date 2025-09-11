@@ -55,19 +55,12 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
 		break;
 	}
 	
-	// 에디터 화면에 현재 상태 출력
-	FString stateStr = UEnum::GetValueAsString(CurrentState);
-	GEngine->AddOnScreenDebugMessage(0,1,FColor::Cyan, stateStr);
-	
 
 	 if (bMoveOut || bReturn)
     {
         MoveT += DeltaTime;
         const float Alpha = FMath::Clamp(MoveT / MoveDuration, 0.f, 1.f);
         const FVector P = FMath::Lerp(MoveStart, MoveTarget, Alpha);
-	 	
-	 	
-
 	 	
         // 충돌 고려해서 이동
         player->SetActorLocation(P, true);
@@ -240,19 +233,11 @@ void UPlayerFSM::OnParry()
 	}
 }
 
-void UPlayerFSM::OnCounter()
-{
-	// 쳐내기를 모두 성공하면 카운터가 발생 (무조건)
-	if (CounterMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
-	{
-		player->GetMesh()->GetAnimInstance()->Montage_Play(CounterMontage);
-	}
-}
-
 
 // 스킬 함수
 void UPlayerFSM::ExecuteSkill(const FVector& EnemyLocation, int32 SkillIndex)
 {
+	UE_LOG(LogTemp, Warning, TEXT("SKillPlay"));
 	const FSkillRow* Row = GetSkillRowByIndex(SkillIndex);
 	if (!Row) return;
 
@@ -274,10 +259,14 @@ void UPlayerFSM::ExecuteSkill(const FVector& EnemyLocation, int32 SkillIndex)
 	dir.Z = 0; 
 	if (!dir.Normalize()) dir = FVector::ForwardVector;
 
-	const float R = Row->Distance;     
-	MoveTarget = EnemyLocation + dir * R;
+	// 적과의 거리 계산
+	float TotalDist = FVector::Dist2D(StartLocation, EnemyLocation);
+	float Ratio = FMath::Clamp(Row->Distance, 0.f, 1.f);
+	MoveTarget = EnemyLocation + dir * (TotalDist * Ratio);
 	MoveStart  = StartLocation;
 
+	
+	
 	// 3) 이동 시간 계산 (속도 기반)
 	const float dist = FVector::Dist2D(MoveStart, MoveTarget);
 	MoveDuration = FMath::Max(KINDA_SMALL_NUMBER, dist / MoveSpeed);

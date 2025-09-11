@@ -114,9 +114,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "State")
 	void OnParry();
 	
-	//카운터
-	UFUNCTION(BlueprintCallable, Category = "State")
-	void OnCounter();
 
 	
 	// 스킬 데이터 테이블
@@ -153,7 +150,7 @@ public:
 	FRotator StartRotation;
 	float   MoveT = 0.f;            // 진행 시간
 	float   MoveDuration = 0.f;     // 총 이동 시간
-	float   MoveSpeed = 1000.f;      // uu/s
+	float   MoveSpeed = 1500.f;      // uu/s
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation")
 	bool    bMoveOut = false;       // 적에게 가는 중
@@ -173,11 +170,10 @@ public:
 	
 
 	// 몽타주
+	
 	UPROPERTY(EditAnywhere, Category="Montage")
 	UAnimMontage* IntroMontage; 
-
-	UPROPERTY(EditAnywhere, Category="Montage")
-	UAnimMontage* StartAttackMontage;
+	
 	
 	UPROPERTY(EditAnywhere, Category="Montage")
 	UAnimMontage* DamagedMontage;
@@ -187,9 +183,7 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category="Montage")
 	UAnimMontage* ParryMontage;
-
-	UPROPERTY(EditAnywhere, Category="Montage")
-	UAnimMontage* CounterMontage;
+	
 	
 	UPROPERTY(EditAnywhere, Category="Montage")
 	UAnimMontage* DieMontage;

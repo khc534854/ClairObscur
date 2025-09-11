@@ -280,6 +280,13 @@ int32 APlayerBase::getplayerAP() const
 	return currentAP;
 }
 
+void APlayerBase::OnAttackHit()
+{
+	// "공격이 적중했다!"는 사실을 자신을 포함하여 외부에 방송합니다.
+	OnAttackHitDelegate.Broadcast(this);
+	
+}
+
 
 
 

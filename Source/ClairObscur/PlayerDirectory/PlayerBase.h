@@ -13,6 +13,7 @@ struct FFindFloorResult;
 class AWeaponBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackHitSignature, APlayerBase*, Attacker);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerHPChangedSignature, float, CurrentHP, float, MaxHP, ACharacter*, DamagedActor);
 
 UCLASS()
 class CLAIROBSCUR_API APlayerBase : public ACharacter
@@ -171,7 +172,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Stat")
 	int32 currentAP;
-	
+
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerHPChangedSignature OnHPChanged;
 	
 	//체력, AP function get / set
 	UFUNCTION()

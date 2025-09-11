@@ -75,6 +75,7 @@ void AEnemy::BeginPlay()
 			
 		}
 	}
+	currentHP = maxHP;
 }
 
 // Called every frame
@@ -250,6 +251,19 @@ void AEnemy::StartCanParry()
 void AEnemy::EndCanParry()
 {
 	OnParryEnd.Broadcast(this);
+}
+
+void AEnemy::setEnemyHP(float hitdamage)
+{
+	currentHP -= hitdamage;
+	currentHP = FMath::Clamp(currentHP, 0,maxHP);
+
+	OnHPChanged.Broadcast(currentHP, maxHP, this);
+}
+
+float AEnemy::getEnemyHP()
+{
+	return currentHP;
 }
 
 /*void AEnemy::OnEnemyNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)

@@ -2,6 +2,7 @@
 
 
 #include "BattleDamageCalculateComponent.h"
+#include "CharacterComponent/SkillRow.h"
 
 
 // Sets default values for this component's properties
@@ -32,5 +33,17 @@ void UBattleDamageCalculateComponent::TickComponent(float DeltaTime, ELevelTick 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+float UBattleDamageCalculateComponent::CalculateFinalDamage(ACharacter* Attacker, ACharacter* Target,
+	const struct FSkillRow& SkillData)
+{
+	float FinalDamage = SkillData.BasicDamage;
+
+	// 예: float AttackerPower = Attacker->GetStatsComponent()->GetAttackPower();
+	// 예: float TargetDefense = Target->GetStatsComponent()->GetDefense();
+	// FinalDamage = SkillData.BasicDamage + AttackerPower - TargetDefense;
+
+	return FinalDamage;
 }
 

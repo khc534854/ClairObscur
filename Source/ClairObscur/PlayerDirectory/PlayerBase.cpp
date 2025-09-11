@@ -261,7 +261,9 @@ void APlayerBase::setplayerHP(int32 hitdamage)
 {
 
 	currentHP -= hitdamage;
-	currentHP = FMath::Clamp(currentHP, 0,150);
+	currentHP = FMath::Clamp(currentHP, 0,maxHP);
+
+	OnHPChanged.Broadcast(currentHP, maxHP, this);
 }
 
 int32 APlayerBase::getplayerHP() const

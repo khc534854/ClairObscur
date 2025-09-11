@@ -13,10 +13,9 @@ UCLASS()
 class CLAIROBSCUR_API UCostWidget : public UUserWidget
 {
 	GENERATED_BODY()
-
-	void SetCost(FText currentCost);
-
 public:
+	void SetCost(FText currentCost);
+	
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Cost;
 };

@@ -9,6 +9,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyMovement, bool, bIsMoving);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnParryWindowChanged, AEnemy*, Enemy);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnEnemyHPChangedSignature, float, CurrentHP, float, MaxHP, ACharacter*, DamagedActor);
 
 struct FSkillRow;
 class UEnemyAnimInstance;
@@ -85,7 +86,7 @@ public:
 	void OnEnemyNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
 
 	UFUNCTION()
-	void OnEnemyNotifyEnd(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);*/
+	void APlayerBase(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);*/
 
 	UPROPERTY(VisibleAnywhere, Category="Combat")
 	bool bCanBeParried = false;
@@ -101,4 +102,16 @@ public:
 	
 	void StartCanParry();
 	void EndCanParry();
+//HP
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	float maxHP = 1000.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
+	float currentHP;
+
+	void setEnemyHP(float hitdamage);
+	float getEnemyHP();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnEnemyHPChangedSignature OnHPChanged;
 };

@@ -6,6 +6,7 @@
 #include "BattleFSMComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "GameSystem/BattleManager.h"
+#include "GameSystem/Widget/BattleHUDWidget.h"
 #include "GameSystem/Widget/SelectSkillWidget.h"
 #include "GameSystem/Widget/WidgetComponent/QTEWidget.h"
 #include "GameSystem/Widget/WidgetComponent/SkillDetailWidget.h"
@@ -53,8 +54,8 @@ void UBattleUIComponent::BeginPlay()
 	}
 	if (PlayerHUDWidgetClass)
 	{
-		PlayerHUDWidget = CreateWidget<UUserWidget>(PC, PlayerHUDWidgetClass);
-		PlayerHUDWidget->AddToViewport();
+		BattleHUDWidget = CreateWidget<UBattleHUDWidget>(PC, PlayerHUDWidgetClass);
+		BattleHUDWidget->AddToViewport();
 	}
 
 	HideAllWidgets();
@@ -142,6 +143,10 @@ void UBattleUIComponent::ShowQTEWidget()
 			Cast<UQTEWidget>(TimingWidget)->SetOwnerTimingComponent(OwnerManager->BattleTimingComp);
 		}
 	}
+}
+
+void UBattleUIComponent::UpdateHUD()
+{
 }
 
 

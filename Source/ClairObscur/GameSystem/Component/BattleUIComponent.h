@@ -33,6 +33,9 @@ public:
 	void OnFSMStateChanged(EBattleState NewState);
 
 	void ShowQTEWidget();
+
+	void UpdateHUD();
+
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> SelectActionWidgetClass;
@@ -59,7 +62,7 @@ public:
 	UPROPERTY()
 	class UUserWidget* SelectTargetWidget;
 	UPROPERTY()
-	class UUserWidget* PlayerHUDWidget;
+	class UBattleHUDWidget* BattleHUDWidget;
 
 
 	UPROPERTY()

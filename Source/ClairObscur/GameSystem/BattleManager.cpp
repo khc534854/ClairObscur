@@ -8,15 +8,16 @@
 #include "Component/BattleFSMComponent.h"
 #include "Component/BattleUIComponent.h"
 #include "Component/BattleCameraComponent.h"
+#include "Component/BattleDamageCalculateComponent.h"
 
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "CharacterComponent/SkillComponent.h"
 #include "PlayerDirectory/PlayerBase.h"
 #include "PlayerDirectory/PlayerFSM.h"
 #include "Widget/SelectSkillWidget.h"
+#include "Widget/BattleHUDWidget.h"
 #include "Enemy/Enemy.h"
 #include "Enemy/EnemyFSM.h"
 
@@ -33,6 +34,7 @@ ABattleManager::ABattleManager()
 	BattleTurnComp = CreateDefaultSubobject<UBattleTurnComponent>(TEXT("BattleTurnComp"));
 	BattleFSMComp = CreateDefaultSubobject<UBattleFSMComponent>(TEXT("BattleFSMComp"));
 	BattleUIComp = CreateDefaultSubobject<UBattleUIComponent>(TEXT("BattleUIComp"));
+	BattleDamageCalcComp = CreateDefaultSubobject<UBattleDamageCalculateComponent>(TEXT("BattleDamageCalcComp"));
 	BattleCameraComp = CreateDefaultSubobject<UBattleCameraComponent>(TEXT("BattleCameraComp"));
 	BattleCameraComp->SetupAttachment(DefaultSceneRoot);
 	
@@ -110,10 +112,12 @@ void ABattleManager::SetParticipant()
 		if (Character && Character->ActorHasTag(FName("Enemy")))
 		{
 			EnemyParty.Add(Character);
+			Cast<AEnemy>(Character)->OnHPChanged.AddDynamic(this, &ABattleManager::OnCharacterHPChanged);
 		}
 		else if(Character && Character->ActorHasTag(FName("Player")))
 		{
 			PlayerParty.Add(Character);
+			Cast<APlayerBase>(Character)->OnHPChanged.AddDynamic(this, &ABattleManager::OnCharacterHPChanged);
 		}
 	}
 	
@@ -275,7 +279,7 @@ void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, b
 	if (Character)
 	{
 		Character->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
-		//Character->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+		Character->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
 	}
 	BattleTurnComp->AdvanceTurn();
 }
@@ -294,6 +298,23 @@ void ABattleManager::OnEnemyActionFinished()
 	EnemyCharacter->fsm->SetEnemyState(EEnemyState::Idle);
 	
 	BattleTurnComp->AdvanceTurn();
+}
+
+void ABattleManager::OnCharacterHPChanged(float CurrentHP, float MaxHP, ACharacter* DamagedActor)
+{
+	if (!BattleUIComp || !BattleUIComp->BattleHUDWidget) return;
+
+	// 데미지를 입은 액터가 플레이어인지 적인지 확인
+	if (DamagedActor->ActorHasTag(FName("Player")))
+	{
+		BattleUIComp->BattleHUDWidget->UpdatePlayerHP(CurrentHP, MaxHP);
+		BattleUIComp->BattleHUDWidget->UpdatePlayerHPText(CurrentHP, MaxHP);
+	}
+	else if (DamagedActor->ActorHasTag(FName("Enemy")))
+	{
+		// TODO: 보스/적 HP바 업데이트 함수 호출
+		BattleUIComp->BattleHUDWidget->UpdateBossHP(CurrentHP, MaxHP);
+	}
 }
 
 
@@ -416,7 +437,7 @@ void ABattleManager::FInputAction(const  FInputActionValue& Value)
 		if (CurrentCharacter && CurrentCharacter->fsm)
 		{
 			CurrentCharacter->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
-			//CurrentCharacter->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+			CurrentCharacter->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
 			
 			if (CurrentTargetEnemy)
 			{
@@ -478,6 +499,16 @@ void ABattleManager::HandlePlayerAttackHit(APlayerBase* Attacker)
 	if (CurrentTargetEnemy)
 	{
 		// 타겟 에너미의 피격 함수를 호출합니다!
+
+		const FSkillRow* SkillData = Attacker->fsm->GetSkillRowByIndex(SelectedSkillIndex);
+		if (SkillData)
+		{
+			// 2. 데미지 계산 컴포넌트에게 최종 데미지 계산을 요청합니다.
+			float FinalDamage = BattleDamageCalcComp->CalculateFinalDamage(Attacker, CurrentTargetEnemy, *SkillData);
+
+			// 3. 타겟 에너미에게 계산된 데미지를 입히라고 명령합니다.
+			Cast<AEnemy>(CurrentTargetEnemy)->setEnemyHP(FinalDamage);
+		}
 		CurrentTargetEnemy->EnemyDamage();
 	}
 }

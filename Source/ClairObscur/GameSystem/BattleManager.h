@@ -38,6 +38,8 @@ protected:
 	UFUNCTION()
 	void OnEnemyActionFinished();
 
+	UFUNCTION()
+	void OnCharacterHPChanged(float CurrentHP, float MaxHP, ACharacter* DamagedActor);
 
 public:
 	// Called every frame
@@ -62,6 +64,9 @@ public:
 
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	class UBattleCameraComponent* BattleCameraComp;
+
+	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
+	class UBattleDamageCalculateComponent* BattleDamageCalcComp;
 	
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	TArray<ACharacter*> BattleParticipant;
@@ -114,4 +119,6 @@ public:
 
 	UFUNCTION()
 	void HandlePlayerAttackHit(APlayerBase* Attacker);
+
+
 };

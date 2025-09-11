@@ -67,6 +67,7 @@ void ABattleManager::StartBattle()
 	SetParticipant();
 	EnableInput(GetWorld()->GetFirstPlayerController());
 	BindInputActions();
+	
 }
 
 void ABattleManager::EnableInput(APlayerController* PlayerController)
@@ -167,12 +168,14 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 	auto currentCharacter = BattleTurnComp->GetCurrentTurnCharacter();
 	pressedQTE = false;
 	
+	auto player = Cast<APlayerBase>(currentCharacter);
 	switch (NewState)
 	{
 	case EBattleState::StartBattle:
 		break;
 	case EBattleState::SelectAction:
 		{
+			player->fsm->SetCommandedState(ECommandedPlayerState::SelectAction);
 			FVector CamLocation = FVector(currentCharacter->GetActorLocation()) - FVector(150, -200, -20); // 목표 위치 계산
 			FRotator CamRotation = FRotator(0, -30, -5); // 목표 회전 계산
 			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
@@ -181,6 +184,7 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::SelectSkill:
 		{
+			player->fsm->SetCommandedState(ECommandedPlayerState::SelectSkill);
 			FVector CamLocation = FVector(currentCharacter->GetActorLocation()) - FVector(110, -80, -80); // 목표 위치 계산
 			FRotator CamRotation = FRotator(-15, -10, 5);
 			BattleCameraComp->StartMoveWithCurve(CamLocation, CamRotation, 5.0f);
@@ -207,6 +211,7 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::PlayerPlayAction:
 		{
+			player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
 			BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
 
 			FVector CamLocation = FVector(-170, 340, 150);

@@ -225,6 +225,8 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		AEnemy* CurrentEnemy = Cast<AEnemy>(currentCharacter);
 		if (CurrentEnemy)
 		{
+			CurrentEnemy->OnParryStart.AddDynamic(this, &ABattleManager::HandleParryStart);
+			CurrentEnemy->OnParryEnd.AddDynamic(this, &ABattleManager::HandleParryEnd);
 			// 1. 적 FSM에게 공격 상태로 전환하라고 직접 명령합니다.
 			//    (EnemyFSM의 Tick 로직 대신 BattleManager가 흐름을 제어)
 			if (CurrentEnemy->fsm)
@@ -233,13 +235,17 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			}
 
 			// 2. 공격 애니메이션 길이를 가져옵니다.
-			float AttackAnimLength = 0.f;
-			if (CurrentEnemy->attackAnim) // AEnemy에 기본 공격 몽타주가 할당되어 있다고 가정
-			{
-				AttackAnimLength = CurrentEnemy->attackAnim->GetPlayLength();
-			}
+			float AttackAnimLength = 5.1f;
+			// if (CurrentEnemy->attackAnim) // AEnemy에 기본 공격 몽타주가 할당되어 있다고 가정
+			// {
+			// 	AttackAnimLength = CurrentEnemy->attackAnim->GetPlayLength();
+			// }
 
 			// 3. 애니메이션 길이가 끝나면 턴을 넘기도록 타이머를 설정합니다.
+			FVector CamLocation = FVector(-600, 100, 150);
+			FRotator CamRotation = FRotator(0, -20, 0); 
+			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
+			
 			FTimerHandle EnemyTurnTimer;
 			GetWorld()->GetTimerManager().SetTimer(
 				EnemyTurnTimer,
@@ -249,20 +255,6 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 				false);
 		}
 		break;
-
-		//auto enemy = BattleTurnComp->GetCurrentTurnCharacter();
-		//if (enemy)
-		//{
-		//	USkillComponent* skillComp = enemy->FindComponentByClass<USkillComponent>();
-		//	if (skillComp)
-		//	{
-		//		skillComp->OnActionFinished.AddDynamic(this, &ABattleManager::OnEnemyActionFinished);
-		//		skillComp->ExecuteSkill(FMath::RandRange(0, 3));
-		//	}
-		//}
-		//	//카메라 어떻게
-		//	// 회피, 피격, 패링 처리
-		//break;
 	}
 	case EBattleState::Waiting:
 		break;
@@ -278,25 +270,29 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, bool bReachedSpot)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Action Finished. Advancing to next turn."));
-	ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
-	Cast<APlayerBase>(Character)->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
+
+	auto* Character = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
+	if (Character)
+	{
+		Character->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
+		//Character->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+	}
 	BattleTurnComp->AdvanceTurn();
 }
 
 void ABattleManager::OnEnemyActionFinished()
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Action Finished. Advancing to next turn."));
+	ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
+	AEnemy* EnemyCharacter = Cast<AEnemy>(Character);
 
-	//ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
-	//
-	//if (Character->ActorHasTag(FName("Enemy")))
-	//{
-	//	USkillComponent* SkillComp = Character->FindComponentByClass<USkillComponent>();
-	//	if (SkillComp)
-	//	{
-	//		SkillComp->OnActionFinished.RemoveDynamic(this, &ABattleManager::OnEnemyActionFinished);
-	//	}
-	//}
+	if (EnemyCharacter)
+	{
+		// 에너미의 전체 행동이 끝났으므로, 여기서 구독을 해제합니다.
+		EnemyCharacter->OnParryStart.RemoveDynamic(this, &ABattleManager::HandleParryStart);
+		EnemyCharacter->OnParryEnd.RemoveDynamic(this, &ABattleManager::HandleParryEnd);
+	}
+	EnemyCharacter->fsm->SetEnemyState(EEnemyState::Idle);
+	
 	BattleTurnComp->AdvanceTurn();
 }
 
@@ -322,6 +318,12 @@ void ABattleManager::QInputAction(const  FInputActionValue& Value)
 	if (BattleFSMComp->GetCurrentState() == EBattleState::EnemyPlayAction)
 	{
 		// Dodge
+		BattleTimingComp->OnPlayerInput();
+		auto CurrentCharacter = Cast<APlayerBase>(PlayerParty[0]);
+		if (CurrentCharacter)
+		{
+			CurrentCharacter->fsm->OnDodge();
+		}
 		return;
 	}
 }
@@ -358,6 +360,12 @@ void ABattleManager::EInputAction(const  FInputActionValue& Value)
 	if (BattleFSMComp->GetCurrentState() == EBattleState::EnemyPlayAction)
 	{
 		// parry
+		BattleTimingComp->OnPlayerInput();
+		auto CurrentCharacter =  Cast<APlayerBase>(PlayerParty[0]);
+		if (CurrentCharacter)
+		{
+			CurrentCharacter->fsm->OnParry();
+		}
 		return;
 	}
 
@@ -402,20 +410,17 @@ void ABattleManager::FInputAction(const  FInputActionValue& Value)
 		BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
 
 		auto CurrentCharacter = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
+		// 임시로 첫 번째 적을 타겟으로 지정
+		CurrentTargetEnemy = Cast<AEnemy>(EnemyParty[0]); 
+
 		if (CurrentCharacter && CurrentCharacter->fsm)
 		{
 			CurrentCharacter->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
-
-			// TODO: 현재 타겟팅된 적을 가져오는 로직 필요
-			AEnemy* TargetEnemy = Cast<AEnemy>(EnemyParty[0]); // 임시로 첫 번째 적을 타겟으로 지정
-
-			if (TargetEnemy)
+			//CurrentCharacter->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+			
+			if (CurrentTargetEnemy)
 			{
-				CurrentCharacter->fsm->ExecuteSkill(TargetEnemy->GetActorLocation(), SelectedSkillIndex);
-
-				// 3. (임시) 스킬 사용 즉시 타겟에게 데미지를 입히라고 명령
-				// 원래는 플레이어의 공격 애니메이션 중간에 호출되어야 합니다.
-				TargetEnemy->EnemyDamage();
+				CurrentCharacter->fsm->ExecuteSkill(CurrentTargetEnemy->GetActorLocation(), SelectedSkillIndex);
 			}
 		}
 		//auto CurrentCharacter = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
@@ -452,6 +457,28 @@ void ABattleManager::OnTimingCheckResult(bool bSuccess)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Timing Fail"));
 		// TODO: 실패 처리
+	}
+}
+
+void ABattleManager::HandleParryStart(AEnemy* Enemy)
+{
+	BattleTimingComp->StartParryTiming();
+}
+
+void ABattleManager::HandleParryEnd(AEnemy* Enemy)
+{
+	BattleTimingComp->EndParryTiming();
+
+	//Enemy->OnParryStart.RemoveDynamic(this, &ABattleManager::HandleParryStart);
+	//Enemy->OnParryEnd.RemoveDynamic(this, &ABattleManager::HandleParryEnd);
+}
+
+void ABattleManager::HandlePlayerAttackHit(APlayerBase* Attacker)
+{
+	if (CurrentTargetEnemy)
+	{
+		// 타겟 에너미의 피격 함수를 호출합니다!
+		CurrentTargetEnemy->EnemyDamage();
 	}
 }
 

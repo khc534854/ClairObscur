@@ -3,6 +3,8 @@
 
 #include "BattleFSMComponent.h"
 
+#include "BattleTimingComponent.h"
+
 
 // Sets default values for this component's properties
 UBattleFSMComponent::UBattleFSMComponent()
@@ -21,7 +23,6 @@ void UBattleFSMComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
 }
 
 

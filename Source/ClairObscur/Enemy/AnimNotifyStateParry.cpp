@@ -19,6 +19,7 @@ void UAnimNotifyStateParry::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimS
 		ownerEnemy->bCanBeParried = true;
 		ownerEnemy->fsm->bCanBeParried = true;
 		ownerEnemy->fsm->OnParryWindowOpened();
+		ownerEnemy->StartCanParry();
 	}
 }
 
@@ -37,5 +38,6 @@ void UAnimNotifyStateParry::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSeq
 		ownerEnemy->bCanBeParried = false;
 		ownerEnemy->fsm->bCanBeParried = false;
 		ownerEnemy->fsm->OnParryWindowClosed();
+		ownerEnemy->EndCanParry();
 	}
 }

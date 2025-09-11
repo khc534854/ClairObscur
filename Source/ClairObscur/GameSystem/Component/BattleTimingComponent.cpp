@@ -26,29 +26,78 @@ void UBattleTimingComponent::BeginPlay()
 
 void UBattleTimingComponent::StartTimingEvent(float Duration, float SuccessWindowStart, float SuccessWindowEnd)
 {
+	bIsTimingActive = true;
 	FinishTime = Duration;
 	SuccessStart = SuccessWindowStart;
 	SuccessEnd = SuccessWindowEnd;
 	CurrentTime = 0.f;
+	CurrentMode = ETimingMode::PlayerAttack;
+}
+
+void UBattleTimingComponent::StartParryTiming()
+{
 	bIsTimingActive = true;
+	CurrentMode = ETimingMode::EnemyParry;
+	bCanParry = true;
+}
+
+void UBattleTimingComponent::EndParryTiming()
+{
+	if(CurrentMode == ETimingMode::EnemyParry)
+	{
+		OnTimingResult.Broadcast(false); // 창이 닫혔을 때 누르면 실패
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Parry Fail"));
+		bIsTimingActive = false;
+	}
+	CurrentMode = ETimingMode::Inactive;
+	bCanParry = false;
 }
 
 void UBattleTimingComponent::OnPlayerInput()
 {
 	if (!bIsTimingActive) return;
 
-	// 타이밍 성공/실패 판정
-	if (CurrentTime >= SuccessStart && CurrentTime <= SuccessEnd)
-	{ 
-		OnTimingResult.Broadcast(true); // 성공 방송
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Timing Success"));
-	}
-	else
+	switch (CurrentMode)
 	{
-		OnTimingResult.Broadcast(false); // 실패 방송
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Timing Fail"));
+	case ETimingMode::Inactive:
+		break;
+	case ETimingMode::PlayerAttack:
+		{
+			if (CurrentTime >= SuccessStart && CurrentTime <= SuccessEnd)
+			{ 
+				OnTimingResult.Broadcast(true); // 성공 방송
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Timing Success"));
+			}
+			else
+			{
+				OnTimingResult.Broadcast(false); // 실패 방송
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Timing Fail"));
+			}
+			CurrentMode = ETimingMode::Inactive;
+			bIsTimingActive = false;
+			break;
+		}
+	case ETimingMode::EnemyParry:
+		{
+			if (bCanParry)
+			{
+				OnTimingResult.Broadcast(true);
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Parry Success"));
+			}
+			else
+			{
+				OnTimingResult.Broadcast(false); // 창이 닫혔을 때 누르면 실패
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Parry Fail"));
+			}
+			CurrentMode = ETimingMode::Inactive;
+			break;
+		}
+	default: ;
 	}
-	bIsTimingActive = false; // 한 번 판정하면 타이머 중지
+
+	// 타이밍 성공/실패 판정
+
+	 // 한 번 판정하면 타이머 중지
 }
 
 float UBattleTimingComponent::GetCurrentTimingPercent() const
@@ -64,14 +113,14 @@ void UBattleTimingComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (bIsTimingActive)
+	if (CurrentMode == ETimingMode::PlayerAttack)
 	{
 		CurrentTime += DeltaTime;
 		if (CurrentTime >= FinishTime)
 		{
 			// 시간이 다 되면 입력이 없었으므로 실패 처리
 			OnTimingResult.Broadcast(false);
-			bIsTimingActive = false;
+			CurrentMode = ETimingMode::Inactive;
 		}
 	}
 }

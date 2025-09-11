@@ -242,6 +242,16 @@ void AEnemy::DestroySelf()
 	Destroy();
 }
 
+void AEnemy::StartCanParry()
+{
+	OnParryStart.Broadcast(this);
+}
+
+void AEnemy::EndCanParry()
+{
+	OnParryEnd.Broadcast(this);
+}
+
 /*void AEnemy::OnEnemyNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
 {
 	if (NotifyName == "ParryWindow_Begin")

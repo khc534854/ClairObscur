@@ -8,6 +8,7 @@
 #include "Enemy.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyMovement, bool, bIsMoving);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnParryWindowChanged, AEnemy*, Enemy);
 
 struct FSkillRow;
 class UEnemyAnimInstance;
@@ -92,5 +93,12 @@ public:
 	UPROPERTY(Transient)
 	UEnemyAnimInstance* AnimInst = nullptr;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnParryWindowChanged OnParryStart;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnParryWindowChanged OnParryEnd;
+	
+	void StartCanParry();
+	void EndCanParry();
 };

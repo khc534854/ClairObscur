@@ -7,7 +7,6 @@
 #include "BattleManager.generated.h"
 
 
-
 UCLASS()
 class CLAIROBSCUR_API ABattleManager : public AActor
 {
@@ -73,6 +72,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Battle")
 	TArray<ACharacter*> EnemyParty; // 적군 목록
 
+	UPROPERTY()
+	class AEnemy* CurrentTargetEnemy;
+
 public:
 	// Input
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -102,5 +104,14 @@ public:
 	int32 SelectedSkillIndex;
 	bool pressedQTE = false;
 	
-	
+public:
+	// Notify
+	UFUNCTION()
+	void HandleParryStart(class AEnemy* Enemy);
+
+	UFUNCTION()
+	void HandleParryEnd(class AEnemy* Enemy);
+
+	UFUNCTION()
+	void HandlePlayerAttackHit(APlayerBase* Attacker);
 };

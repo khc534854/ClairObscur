@@ -237,9 +237,11 @@ void UPlayerFSM::OnParry()
 // 스킬 함수
 void UPlayerFSM::ExecuteSkill(const FVector& EnemyLocation, int32 SkillIndex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("SKillPlay"));
 	const FSkillRow* Row = GetSkillRowByIndex(SkillIndex);
 	if (!Row) return;
+
+	// 사용 AP 감소시키기
+	player->setplayerAP(Row->AP);
 
 	// 완료 이벤트용 상태 초기화
 	PendingSkillIndex       = SkillIndex;
@@ -264,8 +266,6 @@ void UPlayerFSM::ExecuteSkill(const FVector& EnemyLocation, int32 SkillIndex)
 	float Ratio = FMath::Clamp(Row->Distance, 0.f, 1.f);
 	MoveTarget = EnemyLocation + dir * (TotalDist * Ratio);
 	MoveStart  = StartLocation;
-
-	
 	
 	// 3) 이동 시간 계산 (속도 기반)
 	const float dist = FVector::Dist2D(MoveStart, MoveTarget);
@@ -275,6 +275,9 @@ void UPlayerFSM::ExecuteSkill(const FVector& EnemyLocation, int32 SkillIndex)
 	// 4) 이동 시작 플래그
 	bReturn  = false;
 	bMoveOut = true;
+
+
+	
 }
 
 

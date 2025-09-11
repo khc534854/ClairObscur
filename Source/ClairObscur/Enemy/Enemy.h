@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EnemyFSM.h"
 #include "GameFramework/Character.h"
 #include "CharacterComponent/SkillRow.h"
 #include "Enemy.generated.h"
@@ -53,12 +54,15 @@ public:
 	void EnemyDie();
 
 	UFUNCTION()
-	void EnemySkill(const FVector& TargetLocation, int32 SkillIndex);
+	void EnemySkill();
 
 	const FSkillRow* GetSkillRowByIndex(int32 Index) const;
 
 	UFUNCTION()
 	void DestroySelf();
+
+	UFUNCTION()
+	void EnemyTakeDamage(float damage);
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -91,6 +95,28 @@ public:
 
 	UPROPERTY(Transient)
 	UEnemyAnimInstance* AnimInst = nullptr;
+
+	UPROPERTY(VisibleAnywhere, Category="Combat")
+	float enemyHP = 5000;
+
+	int32 lastSkill;
+	int32 repeatCount;
+
+	UPROPERTY()
+	FVector targetVectorForEnemy;
+
+	UPROPERTY()
+	int32 skillIndex;
+
+	UPROPERTY()
+	bool inAttackRange = false;
+
+	UPROPERTY()
+	bool beforeAttack = true;
+	
+	FVector origin;
+	FVector direction;
+	
 
 
 };

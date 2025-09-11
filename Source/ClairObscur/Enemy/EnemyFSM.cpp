@@ -65,11 +65,13 @@ void UEnemyFSM::IdleState()
 void UEnemyFSM::MoveState()
 {
 	currentTime += GetWorld()->DeltaTimeSeconds;
-	if (currentTime > 2)
+
+	if (currentTime > 3)
 	{
 		SetEnemyState(EEnemyState::Attack);
 		currentTime = 0;
 	}
+
 }
 
 void UEnemyFSM::AttackState()
@@ -80,6 +82,7 @@ void UEnemyFSM::AttackState()
 		SetEnemyState(EEnemyState::Damage);
 		currentTime = 0;
 	}
+	
 }
 
 void UEnemyFSM::DamageState()
@@ -87,7 +90,7 @@ void UEnemyFSM::DamageState()
 	currentTime += GetWorld()->DeltaTimeSeconds;
 	if (currentTime > 3)
 	{
-		SetEnemyState(EEnemyState::Die);
+		SetEnemyState(EEnemyState::Move);
 		currentTime = 0;
 	}
 }
@@ -99,6 +102,13 @@ void UEnemyFSM::DieState()
 void UEnemyFSM::OnDamageProcess(FVector hitDirection)
 {
 }
+
+void UEnemyFSM::SetTargetToMove(FVector targetVect)
+{
+	targetVector = targetVect;
+}
+
+
 
 void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 {

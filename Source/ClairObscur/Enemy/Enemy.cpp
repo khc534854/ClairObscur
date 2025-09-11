@@ -8,7 +8,7 @@
 
 #include "CharacterComponent/SkillRow.h"
 
-//HP
+//enemyHP
 
 // Sets default values
 AEnemy::AEnemy()
@@ -39,11 +39,11 @@ AEnemy::AEnemy()
 
 	fsm = CreateDefaultSubobject<UEnemyFSM>(TEXT("FSM"));
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> attackMontage(TEXT("/Script/Engine.AnimMontage'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Animations/Swing1_Medium_Montage.Swing1_Medium_Montage'"));
+	/*static ConstructorHelpers::FObjectFinder<UAnimMontage> attackMontage(TEXT("/Script/Engine.AnimMontage'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Animations/Swing1_Medium_Montage.Swing1_Medium_Montage'"));
 	if (attackMontage.Succeeded())
 	{
 		attackAnim = attackMontage.Object;
-	}
+	}*/
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> damageMontage(TEXT("/Script/Engine.AnimMontage'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Animations/Hitreact_Front_Montage.Hitreact_Front_Montage'"));
 	if (damageMontage.Succeeded())
 	{
@@ -81,6 +81,75 @@ void AEnemy::BeginPlay()
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//skill쓸때움직임
+	if (fsm->GetState() == EEnemyState::Attack)
+	{
+		skillIndex = FMath::RandRange(0,2);
+
+
+		switch (skillIndex)
+		{
+		case 0:
+			targetVectorForEnemy = fsm->targetVector;
+			direction = targetVectorForEnemy - GetActorLocation();
+			if (beforeAttack)
+			{AddMovementInput(direction.GetSafeNormal());}
+			if (direction.Size() < 150)
+			{
+				inAttackRange = true;
+				beforeAttack = false;
+			}
+			if (inAttackRange)
+			{
+				EnemySkill();
+				inAttackRange = false;
+			}
+			if (!beforeAttack)
+			{AddMovementInput((origin - GetActorLocation()).GetSafeNormal());}
+
+
+		case 1:
+			targetVectorForEnemy = fsm->targetVector;
+			direction = targetVectorForEnemy - GetActorLocation();
+			if (beforeAttack)
+			{AddMovementInput(direction.GetSafeNormal());}
+			if (direction.Size() < 150)
+			{
+				inAttackRange = true;
+				beforeAttack = false;
+			}
+			if (inAttackRange)
+			{
+				EnemySkill();
+				inAttackRange = false;
+			}
+			if (!beforeAttack)
+			{AddMovementInput((origin - GetActorLocation()).GetSafeNormal());}
+
+			
+		case 2:
+			targetVectorForEnemy = fsm->targetVector;
+			direction = targetVectorForEnemy - GetActorLocation();
+			if (beforeAttack)
+			{AddMovementInput(direction.GetSafeNormal());}
+			if (direction.Size() < 150)
+			{
+				inAttackRange = true;
+				beforeAttack = false;
+			}
+			if (inAttackRange)
+			{
+				EnemySkill();
+				inAttackRange = false;
+			}
+			if (!beforeAttack)
+			{AddMovementInput((origin - GetActorLocation()).GetSafeNormal());}
+
+		}
+	
+	}
+	
 }
 
 // Called to bind functionality to input
@@ -95,17 +164,18 @@ void AEnemy::EnemyIdle()
 
 void AEnemy::EnemyMove(FVector destination)
 {
-	auto target = GetWorld()->GetFirstPlayerController();
-	
+
 }
 
 void AEnemy::EnemyAttack()
 {
-	EnemySkill(FVector(0), 2);
+
+	origin = GetActorLocation();
 }
 
 void AEnemy::EnemyDamage()
 {
+	AddMovementInput(FVector(0));
 	if (damageAnim && GetMesh())
 	{	
 		if (AnimInst)
@@ -169,15 +239,38 @@ void AEnemy::EnemyDie()
 	
 }
 
-void AEnemy::EnemySkill(const FVector& TargetLocation, int32 SkillIndex)
+void AEnemy::EnemySkill()
 {
-	if (const FSkillRow* Row = GetSkillRowByIndex(SkillIndex))
+	if (skillIndex == lastSkill)
+	{
+		repeatCount++;
+		if (repeatCount >= 3)
+		{
+			TArray<int> Candidates = {1, 2};
+			Candidates.Remove(lastSkill);
+			skillIndex = Candidates[FMath::RandRange(0, Candidates.Num() - 1)];
+			repeatCount = 1; // reset count (new skill is first repetition)
+		}
+	}
+	else
+	{
+		repeatCount = 1;
+	}
+	lastSkill = skillIndex;
+	
+	if (const FSkillRow* Row = GetSkillRowByIndex(skillIndex))
 	{
 		if (UAnimMontage* Montage = Row->SkillMontage.LoadSynchronous())
 		{
 			if (AnimInst)
 			{
+
+				
 				float Duration = AnimInst->Montage_Play(Montage);
+				if (skillIndex == 1)
+				{
+					AddMovementInput(FVector(1,0,0));
+				};
 
 				if (Duration > 0.f)
 				{
@@ -195,13 +288,13 @@ void AEnemy::EnemySkill(const FVector& TargetLocation, int32 SkillIndex)
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("SkillRow %d has no valid montage!"), SkillIndex);
+			UE_LOG(LogTemp, Warning, TEXT("SkillRow %i has no valid montage!"), skillIndex);
 		}
 		
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Invalid SkillIndex %d"), SkillIndex);
+		UE_LOG(LogTemp, Warning, TEXT("Invalid skillIndex %i"), skillIndex);
 	
 	}
 
@@ -209,7 +302,7 @@ void AEnemy::EnemySkill(const FVector& TargetLocation, int32 SkillIndex)
 
 /*
 {
-	if (const FSkillRow* Row = GetSkillRowByIndex(SkillIndex))
+	if (const FSkillRow* Row = GetSkillRowByIndex(skillIndex))
 	{
 		if (UAnimMontage* M = Row->SkillMontage.LoadSynchronous())
 		{
@@ -242,6 +335,15 @@ void AEnemy::DestroySelf()
 	Destroy();
 }
 
+void AEnemy::EnemyTakeDamage(float damage)
+{
+	enemyHP -= damage;
+	if (enemyHP <= 0)
+	{
+		fsm->SetEnemyState(EEnemyState::Die);
+	}
+}
+
 /*void AEnemy::OnEnemyNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
 {
 	if (NotifyName == "ParryWindow_Begin")
@@ -261,5 +363,10 @@ void AEnemy::OnEnemyNotifyEnd(FName NotifyName, const FBranchingPointNotifyPaylo
 		fsm->OnParryWindowClosed();
 	}
 }*/
+
+
+
+
+
 
 

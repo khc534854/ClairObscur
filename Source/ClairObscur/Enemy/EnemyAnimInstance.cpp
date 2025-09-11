@@ -8,23 +8,28 @@
 
 #include "Enemy.h"
 
-void UEnemyAnimInstance::OnNotifyBegin(UAnimNotifyState* NotifyState)
+void UEnemyAnimInstance::NativeInitializeAnimation()
 {
-	if (!OwnerEnemy) return;
+	Super::NativeInitializeAnimation();
 
-	// AnimNotifyState 타입 체크
-	if (NotifyState->IsA<UAnimNotifyStateParry>())
+	APawn* pawnOwner = TryGetPawnOwner();
+	if (pawnOwner)
 	{
-		OwnerEnemy->fsm->OnParryWindowOpened();
+		ownerEnemy = Cast<AEnemy>(pawnOwner);
 	}
 }
 
-void UEnemyAnimInstance::OnNotifyEnd(UAnimNotifyState* NotifyState)
+void UEnemyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
-	if (!OwnerEnemy) return;
+	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	if (NotifyState->IsA<UAnimNotifyStateParry>())
-	{
-		OwnerEnemy->fsm->OnParryWindowClosed();
-	}
+	if (!ownerEnemy) return;
+
+	/*// 이동 속도
+	FVector Velocity = ownerEnemy->GetVelocity();
+	ownerEnemy = Velocity.Size();
+
+	// FSM 상태 기반 플래그 (예시)
+	bIsAttacking = ownerEnemy->fsm && ownerEnemy->fsm->IsInAttackState();
+	bIsDead      = ownerEnemy->fsm && ownerEnemy->fsm->IsInDeadState();*/
 }

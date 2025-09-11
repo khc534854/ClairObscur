@@ -13,16 +13,21 @@ UCLASS()
 class CLAIROBSCUR_API UEnemyAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
-
+	
 public:
-	UPROPERTY(Transient)
-	class AEnemy* OwnerEnemy = nullptr;
-	
-	// Called when an AnimNotify (or AnimNotifyState begin) fires
-	void OnNotifyBegin(UAnimNotifyState* NotifyState);
+	virtual void NativeInitializeAnimation() override;
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-	// AnimNotifyState 종료
-	void OnNotifyEnd(UAnimNotifyState* NotifyState);
+	UPROPERTY(BlueprintReadOnly, Category="Enemy")
+	class AEnemy* ownerEnemy;
 
-	
+	/*
+	UPROPERTY(BlueprintReadOnly, Category="Enemy")
+	float speed;
+
+	UPROPERTY(BlueprintReadOnly, Category="Enemy")
+	bool bIsAttacking;
+
+	UPROPERTY(BlueprintReadOnly, Category="Enemy")
+	bool bIsDead;*/
 };

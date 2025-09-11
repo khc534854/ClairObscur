@@ -21,4 +21,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	// FSM 상태 복사 (ABP에서 사용하기 위함)
 	AnimFsmState = OwnerPlayer->fsm->CurrentState;
+
+	bMoveOut = OwnerPlayer->fsm->bMoveOut;
+	bReturn = OwnerPlayer->fsm->bReturn;
 }

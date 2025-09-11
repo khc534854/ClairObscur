@@ -40,7 +40,8 @@ public:
 	// 컴포넌트 소유자 선언
 	UPROPERTY()
 	class AEnemy* me;
-
+	UPROPERTY()
+	FVector targetVector;
 
 
 	void IdleState();
@@ -70,6 +71,9 @@ public:
 	FVector knockbackPos;
 	void OnDamageProcess(FVector hitDirection);
 
+	
+	void SetTargetToMove(FVector targetVect);
+
 	float delayTime;
 	float currentTime;
 
@@ -87,4 +91,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Parry")
 	bool bCanBeParried = false;
+
+	EEnemyState GetState() const { return CurrentState; }
+
+
+
 };

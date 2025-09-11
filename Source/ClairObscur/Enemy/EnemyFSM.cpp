@@ -54,7 +54,7 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 
 void UEnemyFSM::IdleState()
 {
-	//currentTime += GetWorld()->DeltaTimeSeconds;
+	currentTime += GetWorld()->DeltaTimeSeconds;
 	if (currentTime > 4)
 	{
 		SetEnemyState(EEnemyState::Move);
@@ -64,30 +64,33 @@ void UEnemyFSM::IdleState()
 
 void UEnemyFSM::MoveState()
 {
-	//currentTime += GetWorld()->DeltaTimeSeconds;
-	if (currentTime > 2)
+	currentTime += GetWorld()->DeltaTimeSeconds;
+
+	if (currentTime > 3)
 	{
 		SetEnemyState(EEnemyState::Attack);
 		currentTime = 0;
 	}
+
 }
 
 void UEnemyFSM::AttackState()
 {
-	//currentTime += GetWorld()->DeltaTimeSeconds;
+	currentTime += GetWorld()->DeltaTimeSeconds;
 	if (currentTime > 5)
 	{
 		SetEnemyState(EEnemyState::Damage);
 		currentTime = 0;
 	}
+	
 }
 
 void UEnemyFSM::DamageState()
 {
-	//currentTime += GetWorld()->DeltaTimeSeconds;
+	currentTime += GetWorld()->DeltaTimeSeconds;
 	if (currentTime > 3)
 	{
-		SetEnemyState(EEnemyState::Die);
+		SetEnemyState(EEnemyState::Move);
 		currentTime = 0;
 	}
 }
@@ -99,6 +102,13 @@ void UEnemyFSM::DieState()
 void UEnemyFSM::OnDamageProcess(FVector hitDirection)
 {
 }
+
+void UEnemyFSM::SetTargetToMove(FVector targetVect)
+{
+	targetVector = targetVect;
+}
+
+
 
 void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 {

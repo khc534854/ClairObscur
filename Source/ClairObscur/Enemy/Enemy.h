@@ -3,13 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EnemyFSM.h"
 #include "GameFramework/Character.h"
 #include "CharacterComponent/SkillRow.h"
 #include "Enemy.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyMovement, bool, bIsMoving);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnParryWindowChanged, AEnemy*, Enemy);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnEnemyHPChangedSignature, float, CurrentHP, float, MaxHP, ACharacter*, DamagedActor);
 
 struct FSkillRow;
 class UEnemyAnimInstance;
@@ -55,12 +54,15 @@ public:
 	void EnemyDie();
 
 	UFUNCTION()
-	void EnemySkill(const FVector& TargetLocation, int32 SkillIndex);
+	void EnemySkill();
 
 	const FSkillRow* GetSkillRowByIndex(int32 Index) const;
 
 	UFUNCTION()
 	void DestroySelf();
+
+	UFUNCTION()
+	void EnemyTakeDamage(float damage);
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -86,7 +88,7 @@ public:
 	void OnEnemyNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
 
 	UFUNCTION()
-	void APlayerBase(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);*/
+	void OnEnemyNotifyEnd(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);*/
 
 	UPROPERTY(VisibleAnywhere, Category="Combat")
 	bool bCanBeParried = false;
@@ -94,24 +96,27 @@ public:
 	UPROPERTY(Transient)
 	UEnemyAnimInstance* AnimInst = nullptr;
 
-	UPROPERTY(BlueprintAssignable)
-	FOnParryWindowChanged OnParryStart;
+	UPROPERTY(VisibleAnywhere, Category="Combat")
+	float enemyHP = 5000;
 
-	UPROPERTY(BlueprintAssignable)
-	FOnParryWindowChanged OnParryEnd;
+	int32 lastSkill;
+	int32 repeatCount;
+
+	UPROPERTY()
+	FVector targetVectorForEnemy;
+
+	UPROPERTY()
+	int32 skillIndex;
+
+	UPROPERTY()
+	bool inAttackRange = false;
+
+	UPROPERTY()
+	bool beforeAttack = true;
 	
-	void StartCanParry();
-	void EndCanParry();
-//HP
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	float maxHP = 1000.f;
+	FVector origin;
+	FVector direction;
+	
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
-	float currentHP;
 
-	void setEnemyHP(float hitdamage);
-	float getEnemyHP();
-
-	UPROPERTY(BlueprintAssignable)
-	FOnEnemyHPChangedSignature OnHPChanged;
 };

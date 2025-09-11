@@ -8,6 +8,7 @@
 
 #include "CharacterComponent/SkillRow.h"
 
+//HP
 
 // Sets default values
 AEnemy::AEnemy()
@@ -28,7 +29,7 @@ AEnemy::AEnemy()
 		GetMesh()->SetRelativeScale3D(FVector(1));
 		GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
 
-		static ConstructorHelpers::FClassFinder<UEnemyAnimInstance>TempAnimBP(TEXT("/Script/Engine.AnimBlueprint'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Sevarog_AnimBlueprint.Sevarog_AnimBlueprint_C'"));
+		static ConstructorHelpers::FClassFinder<UAnimInstance>TempAnimBP(TEXT("/Script/Engine.AnimBlueprint'/Game/ParagonSevarog/Characters/Heroes/Sevarog/Sevarog_AnimBlueprint.Sevarog_AnimBlueprint_C'"));
 
 		if (TempAnimBP.Succeeded())
 		{
@@ -53,9 +54,9 @@ AEnemy::AEnemy()
 	{
 		dieAnim = dieMontage.Object;
 	}
-	
 
-
+	Tags.Add(FName("Enemy"));
+	Tags.Add(FName("BattlePossible"));
 
 }
 
@@ -66,10 +67,12 @@ void AEnemy::BeginPlay()
 
 	if (GetMesh() && GetMesh()->GetAnimInstance())
 	{
+
 		AnimInst = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance());
 		if (AnimInst)
 		{
-			AnimInst->OwnerEnemy = this; // 자기 자신 연결
+			AnimInst->ownerEnemy = this; // 자기 자신 연결
+			
 		}
 	}
 }
@@ -92,6 +95,8 @@ void AEnemy::EnemyIdle()
 
 void AEnemy::EnemyMove(FVector destination)
 {
+	auto target = GetWorld()->GetFirstPlayerController();
+	
 }
 
 void AEnemy::EnemyAttack()

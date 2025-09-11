@@ -15,13 +15,14 @@ void UAnimNotifyStateParry::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimS
 	// Parry 창 열기
 	if (ownerEnemy->fsm)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("AnimNotifyStateParry::NotifyBegin"));
 		ownerEnemy->bCanBeParried = true;
 		ownerEnemy->fsm->bCanBeParried = true;
 		ownerEnemy->fsm->OnParryWindowOpened();
 	}
 }
 
-void UAnimNotifyStateParry::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
+void UAnimNotifyStateParry::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	if (!MeshComp) return;
 
@@ -31,6 +32,8 @@ void UAnimNotifyStateParry::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSeq
 	// Parry 창 닫기
 	if (ownerEnemy->fsm)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("AnimNotifyStateParry::NotifyEnd"));
+
 		ownerEnemy->bCanBeParried = false;
 		ownerEnemy->fsm->bCanBeParried = false;
 		ownerEnemy->fsm->OnParryWindowClosed();

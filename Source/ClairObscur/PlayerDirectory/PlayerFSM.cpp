@@ -261,7 +261,8 @@ void UPlayerFSM::ExecuteSkill(const FVector& EnemyLocation, int32 SkillIndex)
 	bReachedSpotThisRun     = false;
 	bLastMontageInterrupted = false;
 	
-
+	EnemyLoc = EnemyLocation;
+	
 	// 1) 시작 상태 저장
 	StartLocation  = player->GetActorLocation();
 	StartRotation  = player->GetActorRotation();

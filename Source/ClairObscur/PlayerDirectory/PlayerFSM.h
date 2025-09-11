@@ -123,10 +123,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="SKill")
 	TSoftObjectPtr<UDataTable> SkillTable;
 
+	
 	// 스킬 실행 함수
 	UFUNCTION(BlueprintCallable, Category = "SKill")
 	void ExecuteSkill(const FVector& EnemyLocation, int32 SkillIndex);
 
+	UPROPERTY(EditAnywhere)
+	FVector EnemyLoc;
+
+	
 	UFUNCTION()
 	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	

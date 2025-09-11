@@ -170,5 +170,21 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Stat")
 	int32 currentAP;
+	
+	
+	//체력, AP function get / set
+	UFUNCTION()
+	void setplayerHP(int32 hitdamage);
+	
+	UFUNCTION()
+	int32 getplayerHP() const;
+	
+	UFUNCTION()
+    void setplayerAP(int32 useAP);
+    	
+    UFUNCTION()
+    int32 getplayerAP() const; 
+    	
+	
 };
 

@@ -256,5 +256,32 @@ void APlayerBase::OnToggleWeapon_Triggered(const FInputActionInstance& Instance)
 
 
 
+// 플레이어 HP, AP get ,set 
+void APlayerBase::setplayerHP(int32 hitdamage)
+{
+
+	currentHP -= hitdamage;
+	currentHP = FMath::Clamp(currentHP, 0,150);
+}
+
+int32 APlayerBase::getplayerHP() const
+{
+	return currentHP;
+}
+
+void APlayerBase::setplayerAP(int32 useAP)
+{
+	currentAP -= useAP;
+	currentAP = FMath::Clamp(currentAP, 0,9);
+}
+
+int32 APlayerBase::getplayerAP() const
+{
+	return currentAP;
+}
+
+
+
+
 
 

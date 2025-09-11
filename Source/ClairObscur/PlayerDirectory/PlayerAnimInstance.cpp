@@ -1,15 +1,34 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "PlayerAnimInstance.h"
+#include "NiagaraSystem.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "PlayerBase.h"
+
+
+
+UPlayerAnimInstance::UPlayerAnimInstance()
+{
+	ConstructorHelpers::FObjectFinder<UNiagaraSystem> TempNS(TEXT("/Script/Niagara.NiagaraSystem'/Game/Game/Player/Asset/FX/NS_Demon_Slash.NS_Demon_Slash'"));
+
+	if (TempNS.Succeeded())
+	{
+		NS_OverChargeSystem = TempNS.Object;
+	}
+}
+
+
 
 void UPlayerAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-
 	OwnerPlayer = Cast<APlayerBase>(TryGetPawnOwner());
+
+	// anim notify begin  
+	OnPlayMontageNotifyBegin.AddDynamic(this, &UPlayerAnimInstance::OnNotifyBegin);
 }
+
 
 void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
@@ -25,3 +44,25 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bMoveOut = OwnerPlayer->fsm->bMoveOut;
 	bReturn = OwnerPlayer->fsm->bReturn;
 }
+
+
+
+void UPlayerAnimInstance::OnNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& Payload)
+{
+	// 소유 캐릭터 찾기
+	APlayerBase* OwnerChar = Cast<APlayerBase>(TryGetPawnOwner());
+	if (!OwnerChar) return;
+	
+	if (NotifyName == "OverCharge_Hit" && NS_OverChargeSystem)
+	{
+		NS_OverChargeComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NS_OverChargeSystem,
+			OwnerChar->fsm->EnemyLoc  // 에너미 로케이션에 ns 붙이기
+		);
+
+	}
+	
+}
+
+

@@ -11,7 +11,7 @@ public class ClairObscur : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "Eigen" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "Eigen", "Niagara" });
 		
 		PublicIncludePaths.AddRange(new string[] 
 			{ "ClairObscur" });

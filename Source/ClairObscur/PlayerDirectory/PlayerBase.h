@@ -12,6 +12,7 @@ struct FFindFloorResult;
 
 class AWeaponBase;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackHitSignature, APlayerBase*, Attacker);
 
 UCLASS()
 class CLAIROBSCUR_API APlayerBase : public ACharacter
@@ -184,7 +185,15 @@ public:
     	
     UFUNCTION()
     int32 getplayerAP() const; 
-    	
+
+
+public:
+	// AnimNotify가 호출할 함수
+	void OnAttackHit();
+
+	// BattleManager가 구독할 델리게이트
+	UPROPERTY(BlueprintAssignable)
+	FOnAttackHitSignature OnAttackHitDelegate;
 	
 };
 

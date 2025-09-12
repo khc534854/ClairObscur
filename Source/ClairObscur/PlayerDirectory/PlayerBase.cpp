@@ -66,6 +66,8 @@ void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (fsm){fsm->warmup();}
+	
 	// 매핑
 	APlayerController* pc = GetWorld()->GetFirstPlayerController();
 

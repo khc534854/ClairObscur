@@ -187,4 +187,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category="Montage")
 	UAnimMontage* DieMontage;
+	
+	void warmup();
 };

@@ -308,3 +308,8 @@ const FSkillRow* UPlayerFSM::GetSkillRowByIndex(int32 Index) const
 	return Table->FindRow<FSkillRow>(RowNames[Index], Ctx);
 }
 
+void UPlayerFSM::warmup()
+{
+	//프리로드
+}
+

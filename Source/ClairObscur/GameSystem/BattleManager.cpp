@@ -235,11 +235,11 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			//    (EnemyFSM의 Tick 로직 대신 BattleManager가 흐름을 제어)
 			if (CurrentEnemy->fsm)
 			{
-				CurrentEnemy->fsm->SetEnemyState(EEnemyState::Attack);
+				CurrentEnemy->fsm->SetEnemyState(EEnemyState::Move);
 			}
 
 			// 2. 공격 애니메이션 길이를 가져옵니다.
-			float AttackAnimLength = 5.1f;
+			float AttackAnimLength = 10.f;
 			// if (CurrentEnemy->attackAnim) // AEnemy에 기본 공격 몽타주가 할당되어 있다고 가정
 			// {
 			// 	AttackAnimLength = CurrentEnemy->attackAnim->GetPlayLength();
@@ -295,7 +295,7 @@ void ABattleManager::OnEnemyActionFinished()
 		EnemyCharacter->OnParryStart.RemoveDynamic(this, &ABattleManager::HandleParryStart);
 		EnemyCharacter->OnParryEnd.RemoveDynamic(this, &ABattleManager::HandleParryEnd);
 	}
-	EnemyCharacter->fsm->SetEnemyState(EEnemyState::Idle);
+	//EnemyCharacter->fsm->SetEnemyState(EEnemyState::Idle);
 	
 	BattleTurnComp->AdvanceTurn();
 }

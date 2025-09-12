@@ -4,6 +4,7 @@
 #include "EnemyFSM.h"
 
 #include "Enemy.h"
+#include "EnemyAnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "PlayerDirectory/PlayerBase.h"
 
@@ -54,7 +55,7 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 
 void UEnemyFSM::IdleState()
 {
-	currentTime += GetWorld()->DeltaTimeSeconds;
+	//currentTime += GetWorld()->DeltaTimeSeconds;
 	if (currentTime > 4)
 	{
 		SetEnemyState(EEnemyState::Move);
@@ -64,19 +65,41 @@ void UEnemyFSM::IdleState()
 
 void UEnemyFSM::MoveState()
 {
-	currentTime += GetWorld()->DeltaTimeSeconds;
 
-	if (currentTime > 3)
+	// targetVector 로 이동을 시키자 1 : target한테 2 :원위치로
+	// 공격 조건 되면 move
+	if (!didIAttack)
 	{
-		SetEnemyState(EEnemyState::Attack);
-		currentTime = 0;
+		if ((targetVector - me->GetActorLocation()).Size() < 200)
+		{
+			SetEnemyState(EEnemyState::Attack);
+			return;
+		}
+		else
+		{
+			me->SetActorLocation(me->GetActorLocation() + moveSpeed * moveDirection * GetWorld()->GetDeltaSeconds());
+
+		}
 	}
+	else
+	{
+		if ((me->GetActorLocation()-enemyOriginLocation).Size() > 10)
+		{
+			me->SetActorLocation(me->GetActorLocation() + moveSpeed * returnDirection * GetWorld()->GetDeltaSeconds());
+		}
+		else
+		{
+			didIAttack = false;
+			SetEnemyState(EEnemyState::Idle);
+		}
+	}
+
 
 }
 
 void UEnemyFSM::AttackState()
 {
-	currentTime += GetWorld()->DeltaTimeSeconds;
+	//currentTime += GetWorld()->DeltaTimeSeconds;
 	if (currentTime > 5)
 	{
 		SetEnemyState(EEnemyState::Damage);
@@ -87,7 +110,7 @@ void UEnemyFSM::AttackState()
 
 void UEnemyFSM::DamageState()
 {
-	currentTime += GetWorld()->DeltaTimeSeconds;
+	//currentTime += GetWorld()->DeltaTimeSeconds;
 	if (currentTime > 3)
 	{
 		SetEnemyState(EEnemyState::Move);
@@ -115,6 +138,7 @@ void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 	if (CurrentState != NewState)
 	{
 		CurrentState = NewState;
+		me->AnimInst->animState = CurrentState;
 
 		// Broadcast immediately on state change if entering Move
 		if (me)
@@ -130,7 +154,10 @@ void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 				me->EnemyIdle();
 				break;
 			case EEnemyState::Move:
-				me->EnemyMove(FVector(0));
+				//공경전 무브면 내위치오리진 저장
+				moveDirection = (targetVector - me->GetActorLocation()).GetSafeNormal();
+				returnDirection = (enemyOriginLocation - me->GetActorLocation()).GetSafeNormal();
+				me->EnemyMove();
 				break;
 			case EEnemyState::Attack:
 				me->EnemyAttack();
@@ -154,4 +181,9 @@ void UEnemyFSM::OnParryWindowOpened()
 void UEnemyFSM::OnParryWindowClosed()
 {
 	bCanBeParried = false; // 파리 가능 상태 종료
+}
+
+EEnemyState UEnemyFSM::GetState()
+{
+	return CurrentState;
 }

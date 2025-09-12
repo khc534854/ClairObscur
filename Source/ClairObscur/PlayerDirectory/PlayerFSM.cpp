@@ -265,6 +265,7 @@ void UPlayerFSM::ExecuteSkill(const FVector& EnemyLocation, int32 SkillIndex)
 	float TotalDist = FVector::Dist2D(StartLocation, EnemyLocation);
 	float Ratio = FMath::Clamp(Row->Distance, 0.f, 1.f);
 	MoveTarget = EnemyLocation + dir * (TotalDist * Ratio);
+	MoveTarget.Z = StartLocation.Z;
 	MoveStart  = StartLocation;
 	
 	// 3) 이동 시간 계산 (속도 기반)

@@ -33,4 +33,8 @@ void UCostBarWidget::SetCost(int32 newCost)
 	{
 		Costs[i]->SetVisibility(ESlateVisibility::Visible);
 	}
+	for (int32 i = newCost; i < Costs.Num(); i++)
+	{
+		Costs[i]->SetVisibility(ESlateVisibility::Hidden);
+	}
 }

@@ -26,4 +26,6 @@ public:
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
 	float CalculateFinalDamage(ACharacter* Attacker, ACharacter* Target, const struct FSkillRow& SkillData);
+
+	float MultiplyDamage = 1.;
 };

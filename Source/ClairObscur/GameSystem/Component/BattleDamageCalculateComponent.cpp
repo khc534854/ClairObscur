@@ -38,8 +38,10 @@ void UBattleDamageCalculateComponent::TickComponent(float DeltaTime, ELevelTick 
 float UBattleDamageCalculateComponent::CalculateFinalDamage(ACharacter* Attacker, ACharacter* Target,
 	const struct FSkillRow& SkillData)
 {
-	float FinalDamage = SkillData.BasicDamage;
-
+	float FinalDamage = SkillData.BasicDamage * MultiplyDamage;
+	
+	
+	
 	// 예: float AttackerPower = Attacker->GetStatsComponent()->GetAttackPower();
 	// 예: float TargetDefense = Target->GetStatsComponent()->GetDefense();
 	// FinalDamage = SkillData.BasicDamage + AttackerPower - TargetDefense;

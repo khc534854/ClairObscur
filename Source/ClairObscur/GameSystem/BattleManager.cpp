@@ -14,6 +14,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Camera/CameraComponent.h"
 #include "PlayerDirectory/PlayerBase.h"
 #include "PlayerDirectory/PlayerFSM.h"
 #include "Widget/SelectSkillWidget.h"
@@ -49,7 +50,10 @@ void ABattleManager::BeginPlay()
 
 	BattleFSMComp->OnStateChanged.AddDynamic(this, &ABattleManager::OnFSMStateChanged);
 	BattleFSMComp->OnStateChanged.AddDynamic(BattleUIComp, &UBattleUIComponent::OnFSMStateChanged);
+
+	BattleTimingComp->OnTimingResult.AddDynamic(this, &ABattleManager::OnTimingCheckResult);
 }
+
 
 void ABattleManager::StartBattle()
 {
@@ -118,6 +122,7 @@ void ABattleManager::SetParticipant()
 		{
 			PlayerParty.Add(Character);
 			Cast<APlayerBase>(Character)->OnHPChanged.AddDynamic(this, &ABattleManager::OnCharacterHPChanged);
+			Cast<APlayerBase>(Character)->OnUseAPDelegate.AddDynamic(this, &ABattleManager::ABattleManager::OnPlayerAPChanged);
 		}
 	}
 	
@@ -215,14 +220,30 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::PlayerPlayAction:
 		{
-			player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
-			BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
-
-			FVector CamLocation = FVector(-170, 340, 150);
-			FRotator CamRotation = FRotator(0, -40, 0); 
-			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
-			//BattleCameraComp->MoveCameraTo(FVector(-170, 340, 150), FRotator(0, -40, 0));
-			break;
+			if (SelectedSkillIndex == 1 || SelectedSkillIndex == 0)
+			{
+				player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+				BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
+				BattleCameraComp->MainCamera->SetWorldLocation(FVector(-1219.683634, 261.927081, 406.573137));
+				BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-11.200000, -5.600000, 0.000000));
+				FVector CamLocation = FVector(200.351082,239.330103,127.676547);
+				FRotator CamRotation = FRotator(2.200000,-2.800000,0.000000); 
+				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 8.f);
+				//BattleCameraComp->MoveCameraTo(FVector(-170, 340, 150), FRotator(0, -40, 0));
+				break;
+			}
+			
+			if (SelectedSkillIndex == 2)
+			{
+				player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+				BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
+				//BattleCameraComp->MainCamera->SetWorldLocation(FVector(-1219.683634, 261.927081, 406.573137));
+				//BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-11.200000, -5.600000, 0.000000));
+				FVector CamLocation = FVector(-400.,-100.600403,166.773423);
+				FRotator CamRotation = FRotator(-1.400000,20.400001,0.000000); 
+				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 10.f);
+				break;
+			}
 		}
 	case EBattleState::EnemyPlayAction:
 	{
@@ -235,6 +256,8 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			//    (EnemyFSM의 Tick 로직 대신 BattleManager가 흐름을 제어)
 			if (CurrentEnemy->fsm)
 			{
+				CurrentTargetPlayer = Cast<APlayerBase>(PlayerParty[0]);
+				CurrentEnemy->fsm->SetTargetToMove(CurrentTargetPlayer->GetActorLocation());
 				CurrentEnemy->fsm->SetEnemyState(EEnemyState::Move);
 			}
 
@@ -246,9 +269,9 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			// }
 
 			// 3. 애니메이션 길이가 끝나면 턴을 넘기도록 타이머를 설정합니다.
-			FVector CamLocation = FVector(-600, 100, 150);
-			FRotator CamRotation = FRotator(0, -20, 0); 
-			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
+			FVector CamLocation = FVector(-400, 200, 150);
+			FRotator CamRotation = FRotator(0, -20, 0);
+			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 2.0f);
 			
 			FTimerHandle EnemyTurnTimer;
 			GetWorld()->GetTimerManager().SetTimer(
@@ -260,7 +283,15 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 		break;
 	}
-	case EBattleState::Waiting:
+	case EBattleState::Waiting: // 임시 카운터 스테이트
+		player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+		player->fsm->ExecuteSkill(EnemyParty[0]->GetActorLocation(), 5);
+		BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
+		BattleCameraComp->MainCamera->SetWorldLocation(FVector(-1219.683634, 261.927081, 406.573137));
+		BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-11.200000, -5.600000, 0.000000));
+		FVector CamLocation = FVector(200.351082,239.330103,127.676547);
+		FRotator CamRotation = FRotator(2.200000,-2.800000,0.000000); 
+		BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 8.f);
 		break;
 	case EBattleState::EndBattle:
 		break;
@@ -294,6 +325,7 @@ void ABattleManager::OnEnemyActionFinished()
 		// 에너미의 전체 행동이 끝났으므로, 여기서 구독을 해제합니다.
 		EnemyCharacter->OnParryStart.RemoveDynamic(this, &ABattleManager::HandleParryStart);
 		EnemyCharacter->OnParryEnd.RemoveDynamic(this, &ABattleManager::HandleParryEnd);
+		//EnemyCharacter->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandleEnemyAttackHit);
 	}
 	//EnemyCharacter->fsm->SetEnemyState(EEnemyState::Idle);
 	
@@ -315,6 +347,14 @@ void ABattleManager::OnCharacterHPChanged(float CurrentHP, float MaxHP, ACharact
 		// TODO: 보스/적 HP바 업데이트 함수 호출
 		BattleUIComp->BattleHUDWidget->UpdateBossHP(CurrentHP, MaxHP);
 	}
+}
+
+void ABattleManager::OnPlayerAPChanged(int32 CurrentAP)
+{
+	if (!BattleUIComp || !BattleUIComp->BattleHUDWidget) return;
+
+	BattleUIComp->BattleHUDWidget->UpdateCostBar(CurrentAP);
+	BattleUIComp->BattleHUDWidget->UpdateCostText(CurrentAP);
 }
 
 
@@ -373,8 +413,8 @@ void ABattleManager::EInputAction(const  FInputActionValue& Value)
 	{
 		// Skill 3
 		// SelectedSkill = Player.SkillList[3];   
-		BattleFSMComp->ChangeState(EBattleState::SelectTarget);
-		SelectedSkillIndex = 3;
+		//BattleFSMComp->ChangeState(EBattleState::SelectTarget);
+		//SelectedSkillIndex = 3;
 		return;
 	}
 	
@@ -441,6 +481,7 @@ void ABattleManager::FInputAction(const  FInputActionValue& Value)
 			
 			if (CurrentTargetEnemy)
 			{
+				// AP 감소
 				CurrentCharacter->fsm->ExecuteSkill(CurrentTargetEnemy->GetActorLocation(), SelectedSkillIndex);
 			}
 		}
@@ -467,17 +508,62 @@ void ABattleManager::ESCInputAction(const  FInputActionValue& Value)
 	}
 }
 
-void ABattleManager::OnTimingCheckResult(bool bSuccess)
+void ABattleManager::OnTimingCheckResult(bool bSuccess, ETimingMode TimingMode)
 {
-	if (bSuccess)
+	if (TimingMode == ETimingMode::EnemyParry)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Timing Success"));
-		// TODO: 데미지 증가 등 성공 처리
+		if (bSuccess)
+		{
+			BattleDamageCalcComp->MultiplyDamage = 0;
+			// 성공 시: 패링/회피 성공 로직
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("Parry/Dodge SUCCEEDED!"));
+			// auto player = Cast<APlayerBase>(PlayerParty[0]);
+			// if(player)
+			// {
+			// 	player->fsm->OnParry(); // 혹은 OnDodge();
+			// }
+		}
+		else
+		{
+			BattleDamageCalcComp->MultiplyDamage = 1;
+			// 실패 시: 플레이어 피격 로직 실행
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Parry/Dodge FAILED! Player takes damage."));
+            
+			//HandleEnemyAttackHit에 있던 로직을 여기에 적용
+			if (EnemyParty[0] && PlayerParty[0])
+			{
+				auto AttackerEnemy = Cast<AEnemy>(EnemyParty[0]);
+				auto TargetPlayer = Cast<APlayerBase>(PlayerParty[0]);
+			
+				if(AttackerEnemy && TargetPlayer)
+				{
+					// 1. 적이 사용 중인 스킬 정보를 가져옵니다.
+					// (AEnemy에 현재 사용 스킬 인덱스를 저장하는 변수가 필요합니다)
+					const FSkillRow* SkillData = AttackerEnemy->GetSkillRowByIndex(AttackerEnemy->skillIndex);
+					if (SkillData)
+					{
+						// 2. 데미지 계산
+						float FinalDamage = BattleDamageCalcComp->CalculateFinalDamage(AttackerEnemy, TargetPlayer, *SkillData);
+				
+						// 3. 플레이어에게 데미지 적용
+						TargetPlayer->setplayerHP(FinalDamage);
+						TargetPlayer->fsm->OnTakeDamage();
+						
+					}
+				}
+			}
+		}
 	}
-	else
+	else if (TimingMode == ETimingMode::PlayerAttack)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Timing Fail"));
-		// TODO: 실패 처리
+		if (bSuccess)
+		{
+			BattleDamageCalcComp->MultiplyDamage = 2;
+		}
+		else
+		{
+			BattleDamageCalcComp->MultiplyDamage = 1;
+		}
 	}
 }
 
@@ -510,6 +596,26 @@ void ABattleManager::HandlePlayerAttackHit(APlayerBase* Attacker)
 			Cast<AEnemy>(CurrentTargetEnemy)->setEnemyHP(FinalDamage);
 		}
 		CurrentTargetEnemy->EnemyDamage();
+	}
+}
+
+void ABattleManager::HandleEnemyAttackHit(AEnemy* Attacker)
+{
+	if (CurrentTargetPlayer)
+	{
+		// 타겟 에너미의 피격 함수를 호출합니다!
+
+		const FSkillRow* SkillData = Attacker->GetSkillRowByIndex(Attacker->skillIndex);
+		if (SkillData)
+		{
+			// 2. 데미지 계산 컴포넌트에게 최종 데미지 계산을 요청합니다.
+			float FinalDamage = BattleDamageCalcComp->CalculateFinalDamage(Attacker, CurrentTargetPlayer, *SkillData);
+
+			// 3. 타겟 에너미에게 계산된 데미지를 입히라고 명령합니다.
+			Cast<APlayerBase>(CurrentTargetPlayer)->setplayerHP(FinalDamage);
+		}
+		//if (BattleTimingComp->)
+		CurrentTargetPlayer->fsm->OnTakeDamage();
 	}
 }
 

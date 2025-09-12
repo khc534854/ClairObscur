@@ -14,7 +14,7 @@ enum class ETimingMode : uint8
 	EnemyParry      // 적 공격 패링/회피
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimingResultSignature, bool, bSuccess);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTimingResultSignature, bool, bSuccess, ETimingMode, TimingMode);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CLAIROBSCUR_API UBattleTimingComponent : public UActorComponent

@@ -14,6 +14,7 @@ class AWeaponBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackHitSignature, APlayerBase*, Attacker);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerHPChangedSignature, float, CurrentHP, float, MaxHP, ACharacter*, DamagedActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerAPChangedSignature, int32, CurrentAP);
 
 UCLASS()
 class CLAIROBSCUR_API APlayerBase : public ACharacter
@@ -197,6 +198,7 @@ public:
 	// BattleManager가 구독할 델리게이트
 	UPROPERTY(BlueprintAssignable)
 	FOnAttackHitSignature OnAttackHitDelegate;
-	
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerAPChangedSignature OnUseAPDelegate;
 };
 

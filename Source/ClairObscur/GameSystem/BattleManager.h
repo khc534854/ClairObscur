@@ -7,6 +7,8 @@
 #include "BattleManager.generated.h"
 
 
+enum class ETimingMode : uint8;
+
 UCLASS()
 class CLAIROBSCUR_API ABattleManager : public AActor
 {
@@ -41,6 +43,8 @@ protected:
 	UFUNCTION()
 	void OnCharacterHPChanged(float CurrentHP, float MaxHP, ACharacter* DamagedActor);
 
+	UFUNCTION()
+	void OnPlayerAPChanged(int32 CurrentAP);
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -80,6 +84,9 @@ public:
 	UPROPERTY()
 	class AEnemy* CurrentTargetEnemy;
 
+	UPROPERTY()
+	class APlayerBase* CurrentTargetPlayer;
+
 public:
 	// Input
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -104,7 +111,8 @@ public:
 	void   RInputAction(const struct FInputActionValue& Value);
 	void   FInputAction(const struct FInputActionValue& Value);
 	void ESCInputAction(const struct FInputActionValue& Value);
-	void OnTimingCheckResult(bool bSuccess);
+	UFUNCTION()
+	void OnTimingCheckResult(bool bSuccess, ETimingMode TimingMode);
 
 	int32 SelectedSkillIndex;
 	bool pressedQTE = false;
@@ -120,5 +128,7 @@ public:
 	UFUNCTION()
 	void HandlePlayerAttackHit(APlayerBase* Attacker);
 
+	UFUNCTION()
+	void HandleEnemyAttackHit(AEnemy* Attacker);
 
 };

@@ -47,7 +47,7 @@ public:
 	UFUNCTION()
 	void EnemyIdle();
 	UFUNCTION()
-	void EnemyMove(FVector destination);
+	void EnemyMove();
 	UFUNCTION()
 	void EnemyAttack();
 	UFUNCTION()
@@ -63,10 +63,7 @@ public:
 	UFUNCTION()
 	void DestroySelf();
 
-	UFUNCTION()
-	void EnemyTakeDamage(float damage);
-
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* attackAnim;
 
@@ -97,9 +94,6 @@ public:
 
 	UPROPERTY(Transient)
 	UEnemyAnimInstance* AnimInst = nullptr;
-
-	UPROPERTY(VisibleAnywhere, Category="Combat")
-	float enemyHP = 5000;
 
 	int32 lastSkill;
 	int32 repeatCount;
@@ -141,4 +135,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnEnemyHPChangedSignature OnHPChanged;
+
+
 };

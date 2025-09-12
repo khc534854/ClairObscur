@@ -33,3 +33,5 @@ void UEnemyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsAttacking = ownerEnemy->fsm && ownerEnemy->fsm->IsInAttackState();
 	bIsDead      = ownerEnemy->fsm && ownerEnemy->fsm->IsInDeadState();*/
 }
+
+

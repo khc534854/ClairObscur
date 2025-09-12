@@ -40,8 +40,7 @@ public:
 	// 컴포넌트 소유자 선언
 	UPROPERTY()
 	class AEnemy* me;
-	UPROPERTY()
-	FVector targetVector;
+
 
 
 	void IdleState();
@@ -77,6 +76,7 @@ public:
 	float delayTime;
 	float currentTime;
 
+	UFUNCTION(BlueprintCallable)
 	void SetEnemyState(EEnemyState NewState);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=FSM)
@@ -92,7 +92,31 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Parry")
 	bool bCanBeParried = false;
 
-	EEnemyState GetState() const { return CurrentState; }
+	UFUNCTION()
+	EEnemyState GetState();
+
+	UPROPERTY()
+	FVector targetVector = FVector(-50.000000,220.000000,50.000000);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool didIAttack = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FVector moveDirection;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	float moveSpeed = 200;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool inAttackRange = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FVector enemyOriginLocation = FVector(660.000000,240.000000,88.000000);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FVector returnDirection;
+
+	
 
 
 

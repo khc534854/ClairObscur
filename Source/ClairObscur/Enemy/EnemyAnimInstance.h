@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EnemyFSM.h"
 #include "Animation/AnimInstance.h"
 #include "EnemyAnimInstance.generated.h"
 
@@ -21,7 +22,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category="Enemy")
 	class AEnemy* ownerEnemy;
 
-	/*
+	
 	UPROPERTY(BlueprintReadOnly, Category="Enemy")
 	float speed;
 
@@ -29,5 +30,18 @@ public:
 	bool bIsAttacking;
 
 	UPROPERTY(BlueprintReadOnly, Category="Enemy")
-	bool bIsDead;*/
+	bool bIsDead;
+
+	UPROPERTY(BlueprintReadOnly, Category="Enemy")
+	EEnemyState animState;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayAttackAnim1();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayAttackAnim2();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayAttackAnim3();
+
 };

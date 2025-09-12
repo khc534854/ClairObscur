@@ -83,7 +83,7 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//skill쓸때움직임
+	/*//skill쓸때움직임
 	if (fsm->GetState() == EEnemyState::Attack)
 	{
 		skillIndex = FMath::RandRange(0,2);
@@ -149,7 +149,7 @@ void AEnemy::Tick(float DeltaTime)
 
 		}
 	
-	}
+	}*/
 	
 }
 
@@ -163,15 +163,30 @@ void AEnemy::EnemyIdle()
 {
 }
 
-void AEnemy::EnemyMove(FVector destination)
+void AEnemy::EnemyMove()
 {
 
 }
 
 void AEnemy::EnemyAttack()
 {
+	skillIndex = FMath::RandRange(0,1);
 
-	origin = GetActorLocation();
+	switch (skillIndex)
+	{
+	case 0:
+		AnimInst->PlayAttackAnim1();
+		break;
+	case 1:
+		AnimInst->PlayAttackAnim2();
+		break;
+	/*case 2:
+		AnimInst->PlayAttackAnim3();
+		break;*/
+	}
+	
+
+	//origin = GetActorLocation();
 }
 
 void AEnemy::EnemyDamage()
@@ -205,6 +220,7 @@ void AEnemy::EnemyDamage()
 
 void AEnemy::EnemyDie()
 {
+	/*
 	if (dieAnim && GetMesh())
 	{	
 		if (AnimInst)
@@ -219,7 +235,6 @@ void AEnemy::EnemyDie()
 				UE_LOG(LogTemp, Warning, TEXT("Montage %s is playing!"), *dieAnim->GetName());
 				FTimerHandle TimerHandle;
 				GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AEnemy::DestroySelf, Duration, false);
-			
 				
 			}
 			else
@@ -236,18 +251,19 @@ void AEnemy::EnemyDie()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No montage assigned!"));
 	}
+	*/
 	
 	
 }
 
 void AEnemy::EnemySkill()
-{
+{/*
 	if (skillIndex == lastSkill)
 	{
 		repeatCount++;
 		if (repeatCount >= 3)
 		{
-			TArray<int> Candidates = {1, 2};
+			TArray<int> Candidates = {0, 1, 2};
 			Candidates.Remove(lastSkill);
 			skillIndex = Candidates[FMath::RandRange(0, Candidates.Num() - 1)];
 			repeatCount = 1; // reset count (new skill is first repetition)
@@ -298,6 +314,7 @@ void AEnemy::EnemySkill()
 		UE_LOG(LogTemp, Warning, TEXT("Invalid skillIndex %i"), skillIndex);
 	
 	}
+	*/
 
 }
 
@@ -336,14 +353,7 @@ void AEnemy::DestroySelf()
 	Destroy();
 }
 
-void AEnemy::EnemyTakeDamage(float damage)
-{
-	enemyHP -= damage;
-	if (enemyHP <= 0)
-	{
-		fsm->SetEnemyState(EEnemyState::Die);
-	}
-}
+
 
 void AEnemy::StartCanParry()
 {
@@ -361,6 +371,10 @@ void AEnemy::setEnemyHP(float hitdamage)
 	currentHP = FMath::Clamp(currentHP, 0, maxHP);
 
 	OnHPChanged.Broadcast(currentHP, maxHP, this);
+	if (currentHP <= 0)
+	{
+		fsm->SetEnemyState(EEnemyState::Die);
+	}
 }
 
 float AEnemy::getEnemyHP()

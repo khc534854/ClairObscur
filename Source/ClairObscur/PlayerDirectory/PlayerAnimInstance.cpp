@@ -16,6 +16,13 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 	{
 		NS_OverChargeSystem = TempNS.Object;
 	}
+
+	ConstructorHelpers::FObjectFinder<UNiagaraSystem> TempNS_sword(TEXT("/Script/Niagara.NiagaraSystem'/Game/SlashHitVFX/NS/NS_Slash_Reaper.NS_Slash_Reaper'"));
+
+	if (TempNS_sword.Succeeded())
+	{
+		NS_SwordAttackSystem = TempNS_sword.Object;
+	}
 }
 
 
@@ -62,6 +69,17 @@ void UPlayerAnimInstance::OnNotifyBegin(FName NotifyName, const FBranchingPointN
 		);
 
 	}
+
+	if (NotifyName == "Combo_Hit" && NS_SwordAttackSystem)
+	{
+		NS_SwordAttackComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NS_SwordAttackSystem,
+			OwnerChar->fsm->EnemyLoc  // 에너미 로케이션에 ns 붙이기
+		);
+
+	}
+
 	
 }
 

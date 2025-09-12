@@ -47,7 +47,6 @@ void UBattleCameraComponent::SetFocusOnCharacter(const ACharacter* TargetCharact
 {
 	if (!TargetCharacter) return;
 
-	// 캐릭터의 뒤쪽 대각선 위치를 계산합니다. (값은 예시입니다)
 	const FVector Offset = (TargetCharacter->GetActorForwardVector() * -300.0f) + (TargetCharacter->GetActorRightVector() * 150.0f) + FVector(0, 0, 100.0f);
 	TargetLocation = TargetCharacter->GetActorLocation() + Offset;
 

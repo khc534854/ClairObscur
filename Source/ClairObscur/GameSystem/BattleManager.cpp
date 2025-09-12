@@ -207,7 +207,7 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::SelectTarget:
 		{
-			FVector CamLocation = EnemyParty[0]->GetActorLocation() - FVector(150,0, -50);
+			FVector CamLocation = EnemyParty[0]->GetActorLocation() - FVector(300,0, -150);
 			FRotator CamRotation = FRotator(0); 
 			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
 			//BattleCameraComp->MoveCameraTo(EnemyParty[0]->GetActorLocation() - FVector(150,0, -50), FRotator(0));

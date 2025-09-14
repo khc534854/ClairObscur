@@ -42,6 +42,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
 	class UNiagaraComponent* NS_OverChargeComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraSystem* NS_SwordAttackSystem;     // 타격 순간 한번 터지는 FX
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraComponent* NS_SwordAttackComp;
 	
 	
 protected:

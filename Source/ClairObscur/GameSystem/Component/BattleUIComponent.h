@@ -22,6 +22,7 @@ protected:
 
 private:
 	// 모든 위젯을 숨기기 위한 헬퍼 함수
+	void HideBattleWidgets();
 	void HideAllWidgets();
 
 public:

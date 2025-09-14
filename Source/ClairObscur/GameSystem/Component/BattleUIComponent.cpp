@@ -58,10 +58,10 @@ void UBattleUIComponent::BeginPlay()
 		BattleHUDWidget->AddToViewport();
 	}
 
-	HideAllWidgets();
+	HideBattleWidgets();
 }
 
-void UBattleUIComponent::HideAllWidgets()
+void UBattleUIComponent::HideBattleWidgets()
 {
 	for (UUserWidget* Widget : AllWidgets)
 	{
@@ -70,6 +70,11 @@ void UBattleUIComponent::HideAllWidgets()
 			Widget->RemoveFromParent();
 		}
 	}
+}
+
+void UBattleUIComponent::HideAllWidgets()
+{
+	BattleHUDWidget->RemoveFromParent();
 }
 
 
@@ -84,7 +89,7 @@ void UBattleUIComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UBattleUIComponent::OnFSMStateChanged(EBattleState NewState)
 {
-	HideAllWidgets();
+	HideBattleWidgets();
 	
 	switch (NewState)
 	{
@@ -126,6 +131,7 @@ void UBattleUIComponent::OnFSMStateChanged(EBattleState NewState)
 	case EBattleState::Waiting:
 		break;
 	case EBattleState::EndBattle:
+		HideAllWidgets();
 		break;
 	case EBattleState::NotBattle:
 		break;

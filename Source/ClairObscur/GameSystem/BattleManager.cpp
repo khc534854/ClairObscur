@@ -76,6 +76,23 @@ void ABattleManager::StartBattle()
 	
 }
 
+void ABattleManager::EndBattle()
+{
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController)
+	{
+		PlayerController->Possess(PlayerParty[0]);
+		auto player = PlayerController->GetPawn();
+		if (player)
+		{
+			player->EnableInput(PlayerController);
+			PlayerController->SetViewTargetWithBlend(player, 1.0f);
+		}
+	}
+
+	DisableInput(GetWorld()->GetFirstPlayerController());
+}
+
 void ABattleManager::EnableInput(APlayerController* PlayerController)
 {
 	Super::EnableInput(PlayerController);
@@ -87,6 +104,22 @@ void ABattleManager::EnableInput(APlayerController* PlayerController)
 			if (IMC_BattleManager)
 			{
 				Subsystem->AddMappingContext(IMC_BattleManager, 1);
+			}
+		}
+	}
+}
+
+void ABattleManager::DisableInput(APlayerController* PlayerController)
+{
+	Super::EnableInput(PlayerController);
+
+	if (PlayerController)
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			if (IMC_BattleManager)
+			{
+				Subsystem->RemoveMappingContext(IMC_BattleManager);
 			}
 		}
 	}
@@ -294,8 +327,12 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 8.f);
 		break;
 	case EBattleState::EndBattle:
+		Cast<APlayerBase>(PlayerParty[0])->fsm->ExitCombatMode();
+		Cast<AEnemy>(EnemyParty[0])->fsm->SetEnemyState(EEnemyState::Idle);
+		EndBattle();
 		break;
 	case EBattleState::NotBattle:
+
 		break;
 	default:
 		break;
@@ -311,7 +348,13 @@ void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, b
 	{
 		Character->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
 		Character->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+		if (Cast<AEnemy>(EnemyParty[0])->getEnemyHP() <= 0)
+		{
+			BattleFSMComp->ChangeState(EBattleState::EndBattle);
+			return;
+		}
 	}
+
 	BattleTurnComp->AdvanceTurn();
 }
 
@@ -326,6 +369,11 @@ void ABattleManager::OnEnemyActionFinished()
 		EnemyCharacter->OnParryStart.RemoveDynamic(this, &ABattleManager::HandleParryStart);
 		EnemyCharacter->OnParryEnd.RemoveDynamic(this, &ABattleManager::HandleParryEnd);
 		//EnemyCharacter->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandleEnemyAttackHit);
+		if (Cast<APlayerBase>(PlayerParty[0])->getplayerHP() <= 0)
+		{
+			BattleFSMComp->ChangeState(EBattleState::EndBattle);
+			return;
+		}
 	}
 	//EnemyCharacter->fsm->SetEnemyState(EEnemyState::Idle);
 	
@@ -595,7 +643,10 @@ void ABattleManager::HandlePlayerAttackHit(APlayerBase* Attacker)
 			// 3. 타겟 에너미에게 계산된 데미지를 입히라고 명령합니다.
 			Cast<AEnemy>(CurrentTargetEnemy)->setEnemyHP(FinalDamage);
 		}
-		CurrentTargetEnemy->EnemyDamage();
+		if (CurrentTargetEnemy->getEnemyHP() <= 0)
+			CurrentTargetEnemy->EnemyDie();
+		else
+			CurrentTargetEnemy->EnemyDamage();
 	}
 }
 
@@ -614,8 +665,10 @@ void ABattleManager::HandleEnemyAttackHit(AEnemy* Attacker)
 			// 3. 타겟 에너미에게 계산된 데미지를 입히라고 명령합니다.
 			Cast<APlayerBase>(CurrentTargetPlayer)->setplayerHP(FinalDamage);
 		}
-		//if (BattleTimingComp->)
-		CurrentTargetPlayer->fsm->OnTakeDamage();
+		//if (CurrentTargetPlayer->getplayerHP() <= 0)
+			// 죽는 처리
+		//else
+			CurrentTargetPlayer->fsm->OnTakeDamage();
 	}
 }
 

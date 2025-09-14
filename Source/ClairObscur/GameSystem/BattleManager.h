@@ -24,8 +24,12 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void StartBattle();
+
+	UFUNCTION(BlueprintCallable)
+	void EndBattle();
 	
 	virtual void EnableInput(APlayerController* PlayerController) override;
+	virtual void DisableInput(APlayerController* PlayerController) override;
 
 	void SetParticipant();
 

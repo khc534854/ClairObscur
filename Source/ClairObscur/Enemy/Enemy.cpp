@@ -220,7 +220,7 @@ void AEnemy::EnemyDamage()
 
 void AEnemy::EnemyDie()
 {
-	/*
+	
 	if (dieAnim && GetMesh())
 	{	
 		if (AnimInst)
@@ -251,7 +251,7 @@ void AEnemy::EnemyDie()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No montage assigned!"));
 	}
-	*/
+	
 	
 	
 }

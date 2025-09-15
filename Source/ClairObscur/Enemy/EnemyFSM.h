@@ -105,7 +105,7 @@ public:
 	FVector moveDirection;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	float moveSpeed = 200;
+	float moveSpeed = 300;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool inAttackRange = false;
@@ -115,6 +115,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FVector returnDirection;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	float distanceTarget = 200;
 
 	
 

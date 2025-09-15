@@ -70,7 +70,7 @@ void UEnemyFSM::MoveState()
 	// 공격 조건 되면 move
 	if (!didIAttack)
 	{
-		if ((targetVector - me->GetActorLocation()).Size() < 200)
+		if ((targetVector - me->GetActorLocation()).Size() < distanceTarget)
 		{
 			SetEnemyState(EEnemyState::Attack);
 			return;
@@ -83,7 +83,7 @@ void UEnemyFSM::MoveState()
 	}
 	else
 	{
-		if ((me->GetActorLocation()-enemyOriginLocation).Size() > 10)
+		if ((me->GetActorLocation()-enemyOriginLocation).Size() > 50)
 		{
 			me->SetActorLocation(me->GetActorLocation() + moveSpeed * returnDirection * GetWorld()->GetDeltaSeconds());
 		}
@@ -155,6 +155,10 @@ void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 				break;
 			case EEnemyState::Move:
 				//공경전 무브면 내위치오리진 저장
+				if (!didIAttack)
+				{
+					enemyOriginLocation = me->GetActorLocation();
+				}
 				moveDirection = (targetVector - me->GetActorLocation()).GetSafeNormal();
 				returnDirection = (enemyOriginLocation - me->GetActorLocation()).GetSafeNormal();
 				me->EnemyMove();

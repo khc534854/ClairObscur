@@ -125,7 +125,7 @@ public:
 
 	//HP
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	float maxHP = 1000.f;
+	float maxHP = 2000.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
 	float currentHP;

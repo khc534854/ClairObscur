@@ -20,9 +20,21 @@ UPlayerFSM::UPlayerFSM()
 void UPlayerFSM::BeginPlay()
 {
 	Super::BeginPlay();
+	
 
 	// 컴포넌트 소유자 (플레이어) 찾기
 	player = Cast<APlayerBase>(GetOwner());
+	
+	// 1. 몽타주 사전 로딩
+	if (IntroMontage)   IntroMontage->AddToRoot();
+	if (DamagedMontage) DamagedMontage->AddToRoot();
+	if (DodgeMontage)   DodgeMontage->AddToRoot();
+	if (ParryMontage)   ParryMontage->AddToRoot();
+	if (DieMontage)     DieMontage->AddToRoot();
+	
+	// 2. 스킬 테이블 몽타주 전부 프리로드
+	warmup();  
+	
 }
 
 
@@ -31,6 +43,7 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
                                FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
 
 	// ...
 
@@ -122,9 +135,10 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UPlayerFSM::EnterCombatMode()
 {
+	
 	bIsInCombat = true;
 	USkeletalMeshComponent* Mesh = player->GetMesh();
-	Mesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	//Mesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 
 	// 전투모드 ABP로 변경
 	if (CombatAnimClass)
@@ -140,6 +154,8 @@ void UPlayerFSM::EnterCombatMode()
 	
 	// 무기 스폰
 	player->SpawnWeapon();
+
+	
 }
 
 void UPlayerFSM::ExitCombatMode()
@@ -311,5 +327,25 @@ const FSkillRow* UPlayerFSM::GetSkillRowByIndex(int32 Index) const
 void UPlayerFSM::warmup()
 {
 	//프리로드
+
+	// Skill Table 미리 로딩
+	UDataTable* Table = SkillTable.LoadSynchronous();
+	if (!Table) return;
+
+	static const FString Ctx = TEXT("Warmup_SkillMontages");
+	const TArray<FName> RowNames = Table->GetRowNames();
+
+	for (const FName& RowName : RowNames)
+	{
+		if (const FSkillRow* Row = Table->FindRow<FSkillRow>(RowName, Ctx))
+		{
+			if (Row->SkillMontage.IsPending())
+			{
+				UAnimMontage* M = Row->SkillMontage.LoadSynchronous();
+				if (M) M->AddToRoot();
+			}
+		}
+	}
+	
 }
 

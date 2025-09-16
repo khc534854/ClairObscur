@@ -3,13 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "GameFramework/Character.h"
 #include "PlayerBase.generated.h"
 
 struct FInputActionInstance;
 struct FFindFloorResult;
 
+class ADamageNumberActor;
 class AWeaponBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackHitSignature, APlayerBase*, Attacker);
@@ -52,6 +52,11 @@ public: // components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class USkillComponent* skillComp;
 
+	// damage component 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UDamagePopupComponent* damageComp;
+
+	
 
 public: // input
 
@@ -179,7 +184,7 @@ public:
 	
 	//체력, AP function get / set
 	UFUNCTION()
-	void setplayerHP(int32 hitdamage);
+	void setplayerHP(int32 hitdamage, AActor* DamageCauser);
 	
 	UFUNCTION()
 	int32 getplayerHP() const;
@@ -195,10 +200,17 @@ public:
 	// AnimNotify가 호출할 함수
 	void OnAttackHit();
 
+
 	// BattleManager가 구독할 델리게이트
 	UPROPERTY(BlueprintAssignable)
 	FOnAttackHitSignature OnAttackHitDelegate;
 	UPROPERTY(BlueprintAssignable)
 	FOnPlayerAPChangedSignature OnUseAPDelegate;
+
+
+	// damage ui
+	float TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent,
+				 AController* EventInstigator, AActor* DamageCauser);
+	
 };
 

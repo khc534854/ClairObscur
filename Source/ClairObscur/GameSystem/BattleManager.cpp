@@ -594,7 +594,7 @@ void ABattleManager::OnTimingCheckResult(bool bSuccess, ETimingMode TimingMode)
 						float FinalDamage = BattleDamageCalcComp->CalculateFinalDamage(AttackerEnemy, TargetPlayer, *SkillData);
 				
 						// 3. 플레이어에게 데미지 적용
-						TargetPlayer->setplayerHP(FinalDamage);
+						TargetPlayer->setplayerHP(FinalDamage, AttackerEnemy);
 						TargetPlayer->fsm->OnTakeDamage();
 						
 					}
@@ -641,7 +641,7 @@ void ABattleManager::HandlePlayerAttackHit(APlayerBase* Attacker)
 			float FinalDamage = BattleDamageCalcComp->CalculateFinalDamage(Attacker, CurrentTargetEnemy, *SkillData);
 
 			// 3. 타겟 에너미에게 계산된 데미지를 입히라고 명령합니다.
-			Cast<AEnemy>(CurrentTargetEnemy)->setEnemyHP(FinalDamage);
+			Cast<AEnemy>(CurrentTargetEnemy)->setEnemyHP(FinalDamage, Attacker);
 		}
 		if (CurrentTargetEnemy->getEnemyHP() <= 0)
 			CurrentTargetEnemy->EnemyDie();
@@ -663,7 +663,7 @@ void ABattleManager::HandleEnemyAttackHit(AEnemy* Attacker)
 			float FinalDamage = BattleDamageCalcComp->CalculateFinalDamage(Attacker, CurrentTargetPlayer, *SkillData);
 
 			// 3. 타겟 에너미에게 계산된 데미지를 입히라고 명령합니다.
-			Cast<APlayerBase>(CurrentTargetPlayer)->setplayerHP(FinalDamage);
+			Cast<APlayerBase>(CurrentTargetPlayer)->setplayerHP(FinalDamage, Attacker);
 		}
 		//if (CurrentTargetPlayer->getplayerHP() <= 0)
 			// 죽는 처리

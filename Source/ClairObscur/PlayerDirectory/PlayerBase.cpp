@@ -11,6 +11,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameplayTagContainer.h"
+#include "Enemy/Enemy.h"
+#include "Engine/DamageEvents.h"
+#include "GameSystem/Widget/DamageNumberActor.h"
+#include "GameSystem/Widget/WidgetComponent/DamagePopupComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default value
@@ -52,9 +57,12 @@ APlayerBase::APlayerBase()
 	// fsm
 	fsm = CreateDefaultSubobject<UPlayerFSM>(TEXT("FSM"));
 
+	
 	// skillComp
 	skillComp = CreateDefaultSubobject<USkillComponent>(TEXT("SkillComp"));
 
+	// damageuicomp
+	damageComp = CreateDefaultSubobject<UDamagePopupComponent>(TEXT("DamagePopupComp"));
 
 	// tag 붙이기
 	Tags.Append({"BattlePossible", "Player"});
@@ -259,14 +267,31 @@ void APlayerBase::OnToggleWeapon_Triggered(const FInputActionInstance& Instance)
 
 
 // 플레이어 HP, AP get ,set 
-void APlayerBase::setplayerHP(int32 hitdamage)
+void APlayerBase::setplayerHP(int32 hitdamage, AActor* DamageCauser)
 {
 
 	currentHP -= hitdamage;
 	currentHP = FMath::Clamp(currentHP, 0,maxHP);
 
+	// WIDGET UI 띄우기
+	AController* InstigatorCtrl = nullptr;
+	if (APawn* P = Cast<APawn>(DamageCauser)) InstigatorCtrl = P->GetController();
+	else if (DamageCauser) InstigatorCtrl = DamageCauser->GetInstigatorController();
+
+	TakeDamage((float)hitdamage, FDamageEvent(), InstigatorCtrl, DamageCauser);
+	
+	// change UI
 	OnHPChanged.Broadcast(currentHP, maxHP, this);
+
 }
+
+
+float APlayerBase::TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent,
+							  AController* EventInstigator, AActor* DamageCauser)
+{
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
+
 
 int32 APlayerBase::getplayerHP() const
 {
@@ -291,6 +316,9 @@ void APlayerBase::OnAttackHit()
 	OnAttackHitDelegate.Broadcast(this);
 	
 }
+
+
+
 
 
 

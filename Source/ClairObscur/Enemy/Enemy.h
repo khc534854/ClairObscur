@@ -125,16 +125,24 @@ public:
 
 	//HP
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	float maxHP = 2000.f;
+	float maxHP = 1500.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
 	float currentHP;
 
-	void setEnemyHP(float hitdamage);
+	void setEnemyHP(float hitdamage, AActor* DamageCauser);
 	float getEnemyHP();
 
 	UPROPERTY(BlueprintAssignable)
 	FOnEnemyHPChangedSignature OnHPChanged;
+	
 
-
+	// damage ui
+	// damage component 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UDamagePopupComponent* damageComp;
+	
+	float TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent,
+				 AController* EventInstigator, AActor* DamageCauser);
+	
 };

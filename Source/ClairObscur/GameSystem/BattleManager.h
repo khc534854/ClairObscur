@@ -55,8 +55,8 @@ public:
 
 public:
 	// Component
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USceneComponent* DefaultSceneRoot;
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	// USceneComponent* DefaultSceneRoot;
 	
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	class UBattleTimingComponent* BattleTimingComp;
@@ -75,6 +75,9 @@ public:
 
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	class UBattleDamageCalculateComponent* BattleDamageCalcComp;
+	
+	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
+	class UBattleFieldComponent* BattleFieldComp;
 	
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	TArray<ACharacter*> BattleParticipant;

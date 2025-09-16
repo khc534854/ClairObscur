@@ -117,7 +117,7 @@ public:
 	FVector returnDirection;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	float distanceTarget = 200;
+	float distanceTarget = 500;
 
 	
 

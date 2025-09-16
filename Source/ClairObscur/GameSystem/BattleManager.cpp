@@ -15,6 +15,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
+#include "Component/BattleFieldComponent.h"
 #include "PlayerDirectory/PlayerBase.h"
 #include "PlayerDirectory/PlayerFSM.h"
 #include "Widget/SelectSkillWidget.h"
@@ -28,17 +29,22 @@ ABattleManager::ABattleManager()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("DefaultSceneRoot"));
-	RootComponent = DefaultSceneRoot;
-	
 	BattleTimingComp = CreateDefaultSubobject<UBattleTimingComponent>(TEXT("BattleTimingComp"));
 	BattleTurnComp = CreateDefaultSubobject<UBattleTurnComponent>(TEXT("BattleTurnComp"));
 	BattleFSMComp = CreateDefaultSubobject<UBattleFSMComponent>(TEXT("BattleFSMComp"));
 	BattleUIComp = CreateDefaultSubobject<UBattleUIComponent>(TEXT("BattleUIComp"));
 	BattleDamageCalcComp = CreateDefaultSubobject<UBattleDamageCalculateComponent>(TEXT("BattleDamageCalcComp"));
 	BattleCameraComp = CreateDefaultSubobject<UBattleCameraComponent>(TEXT("BattleCameraComp"));
-	BattleCameraComp->SetupAttachment(DefaultSceneRoot);
+	BattleFieldComp = CreateDefaultSubobject<UBattleFieldComponent>(TEXT("BattleFieldComp"));
 	
+	RootComponent = BattleFieldComp;
+	BattleFieldComp->BaseComp->SetupAttachment(BattleFieldComp);
+	BattleFieldComp->PlayerPos1->SetupAttachment(BattleFieldComp->BaseComp);
+	BattleFieldComp->PlayerPos2->SetupAttachment(BattleFieldComp->BaseComp);
+	BattleFieldComp->EnemyPos->SetupAttachment(BattleFieldComp->BaseComp);
+	
+	BattleCameraComp->MainCamera->SetupAttachment(BattleCameraComp);
+	BattleCameraComp->SetupAttachment(RootComponent);
 	//생성자에서 인풋 넣어두자
 	//ConstructorHelpers::FObjectFinder<UInputMappingContext>(TEXT(""));
 }
@@ -150,12 +156,14 @@ void ABattleManager::SetParticipant()
 		{
 			EnemyParty.Add(Character);
 			Cast<AEnemy>(Character)->OnHPChanged.AddDynamic(this, &ABattleManager::OnCharacterHPChanged);
+			Character->SetActorLocation(BattleFieldComp->EnemyPos->GetComponentLocation());
 		}
 		else if(Character && Character->ActorHasTag(FName("Player")))
 		{
 			PlayerParty.Add(Character);
 			Cast<APlayerBase>(Character)->OnHPChanged.AddDynamic(this, &ABattleManager::OnCharacterHPChanged);
 			Cast<APlayerBase>(Character)->OnUseAPDelegate.AddDynamic(this, &ABattleManager::ABattleManager::OnPlayerAPChanged);
+			Character->SetActorLocation(BattleFieldComp->PlayerPos1->GetComponentLocation());
 		}
 	}
 	
@@ -218,17 +226,19 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 	case EBattleState::SelectAction:
 		{
 			player->fsm->SetCommandedState(ECommandedPlayerState::SelectAction);
-			FVector CamLocation = FVector(currentCharacter->GetActorLocation()) - FVector(150, -200, -20); // 목표 위치 계산
-			FRotator CamRotation = FRotator(0, -30, -5); // 목표 회전 계산
+			
+			//FVector CamLocation = FVector(currentCharacter->GetActorLocation()) - FVector(150, -200, 0); // 목표 위치 계산
+			//FVector CamLocation = currentCharacter->GetActorLocation() - FVector(-110, 80, -100); // 목표 위치 계산
+			FVector CamLocation = BattleFieldComp->PlayerPos1->GetComponentLocation() - FVector(-110, 80, -100); // 목표 위치 계산
+			FRotator CamRotation = FRotator(0, -200, -5); // 목표 회전 계산
 			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
-			//BattleCameraComp->MoveCameraTo(FVector(currentCharacter->GetActorLocation()) - FVector(150, -200, -20), FRotator(0, -30, -5));
 			break;
 		}
 	case EBattleState::SelectSkill:
 		{
 			player->fsm->SetCommandedState(ECommandedPlayerState::SelectSkill);
-			FVector CamLocation = FVector(currentCharacter->GetActorLocation()) - FVector(110, -80, -80); // 목표 위치 계산
-			FRotator CamRotation = FRotator(-15, -10, 5);
+			FVector CamLocation = FVector(-45439.000000,16065.000000,-22417.495955); // 목표 위치 계산
+			FRotator CamRotation = FRotator(-15, -170, 5);
 			BattleCameraComp->StartMoveWithCurve(CamLocation, CamRotation, 5.0f);
 
 			UDataTable* SkillTable = Cast<APlayerBase>(currentCharacter)->fsm->SkillTable.LoadSynchronous();
@@ -245,8 +255,8 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::SelectTarget:
 		{
-			FVector CamLocation = EnemyParty[0]->GetActorLocation() - FVector(300,0, -150);
-			FRotator CamRotation = FRotator(0); 
+			FVector CamLocation = EnemyParty[0]->GetActorLocation() - FVector(-500,0, -300);
+			FRotator CamRotation = FRotator(0, 180, 0); 
 			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
 			//BattleCameraComp->MoveCameraTo(EnemyParty[0]->GetActorLocation() - FVector(150,0, -50), FRotator(0));
 			break;
@@ -257,11 +267,11 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			{
 				player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
 				BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
-				BattleCameraComp->MainCamera->SetWorldLocation(FVector(-1219.683634, 261.927081, 406.573137));
-				BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-11.200000, -5.600000, 0.000000));
-				FVector CamLocation = FVector(200.351082,239.330103,127.676547);
-				FRotator CamRotation = FRotator(2.200000,-2.800000,0.000000); 
-				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 8.f);
+				BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45341.000000,15607.000000,-22266.146209));
+				BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-9.000000,148.000000,0.004959));
+				FVector CamLocation = FVector(-46117.000000,15583.000000,-22460.000000);
+				FRotator CamRotation = FRotator(4.000000,148.000000,0.000000); 
+				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.f);
 				//BattleCameraComp->MoveCameraTo(FVector(-170, 340, 150), FRotator(0, -40, 0));
 				break;
 			}
@@ -272,9 +282,9 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 				BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
 				//BattleCameraComp->MainCamera->SetWorldLocation(FVector(-1219.683634, 261.927081, 406.573137));
 				//BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-11.200000, -5.600000, 0.000000));
-				FVector CamLocation = FVector(-400.,-100.600403,166.773423);
-				FRotator CamRotation = FRotator(-1.400000,20.400001,0.000000); 
-				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 10.f);
+				//FVector CamLocation = FVector(-400.,-100.600403,166.773423);
+				//FRotator CamRotation = FRotator(-1.400000,20.400001,0.000000); 
+				//BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 10.f);
 				break;
 			}
 		}
@@ -302,8 +312,9 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			// }
 
 			// 3. 애니메이션 길이가 끝나면 턴을 넘기도록 타이머를 설정합니다.
-			FVector CamLocation = FVector(-400, 200, 150);
-			FRotator CamRotation = FRotator(0, -20, 0);
+
+			FVector CamLocation = FVector(-45380.000000,15804.000000,-22563.495955);
+			FRotator CamRotation = FRotator(20.000000,141.000000,0.000000);
 			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 2.0f);
 			
 			FTimerHandle EnemyTurnTimer;

@@ -31,8 +31,12 @@ public:
 
 	void StartMoveWithInterp(FVector NewTargetLocation, FRotator NewTargetRotation, float InterpSpeed);
 
-	/** 방법 2: 커브와 Lerp를 사용한 이동을 시작합니다. */
 	void StartMoveWithCurve(FVector NewTargetLocation, FRotator NewTargetRotation, float Duration);
+
+	void StartMoveWithTwoPointsLinear(
+		FVector InTargetLocation1, FRotator InTargetRotation1, float InDuration1,
+		FVector InTargetLocation2, FRotator InTargetRotation2, float InDuration2
+	);
 	
 	void MoveCameraTo(FVector NewTargetLocation, FRotator NewTargetRotation);
 
@@ -55,6 +59,18 @@ public:
 
 	TFunction<void(float)> UpdateCameraMovement;
 
+private:
 	void UpdateWithInterp(float DeltaTime);
 	void UpdateWithCurve(float DeltaTime);
+	void UpdateWithTwoPointsLinear(float DeltaTime);
+
+	FVector TargetLocation1;
+	FRotator TargetRotation1;
+	float Duration1;
+
+	FVector TargetLocation2;
+	FRotator TargetRotation2;
+	float Duration2;
+
+	int32 CurrentMovePhase;
 };

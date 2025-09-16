@@ -217,7 +217,9 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 {
 	auto currentCharacter = BattleTurnComp->GetCurrentTurnCharacter();
 	pressedQTE = false;
-	
+	//아이템
+	//(X=-45704.661145,Y=16074.760444,Z=-22519.605725)
+	//(Pitch = 12.200000, Yaw = -322.600005, Roll = 0.000000)
 	auto player = Cast<APlayerBase>(currentCharacter);
 	switch (NewState)
 	{
@@ -280,11 +282,19 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			{
 				player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
 				BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
-				//BattleCameraComp->MainCamera->SetWorldLocation(FVector(-1219.683634, 261.927081, 406.573137));
-				//BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-11.200000, -5.600000, 0.000000));
-				//FVector CamLocation = FVector(-400.,-100.600403,166.773423);
-				//FRotator CamRotation = FRotator(-1.400000,20.400001,0.000000); 
-				//BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 10.f);
+				//(X=-45448.102888,Y=16218.238706,Z=-22545.264764)
+				//(Pitch=28.000000,Yaw=-154.000002,Roll=0.000000)
+				// (X=-45304.936031,Y=15897.203615,Z=-22335.620916)
+				// (Pitch=-14.800000,Yaw=-199.400003,Roll=-0.000000)
+				BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45309.274877, 16025.150328, -22494.924233));
+				BattleCameraComp->MainCamera->SetWorldRotation(FRotator(4.000000,  179.400003, 0.000000));
+				// 
+				// 
+				FVector CamLocation1 = FVector(-45448.102888, 16218.238706, -22545.264764);
+				FRotator CamRotation1 = FRotator(28.000000, -154.000002, 0.000000);
+				FVector CamLocation2 = FVector(-45304.936031, 15897.203615, -22335.620916);
+				FRotator CamRotation2 = FRotator(-14.800000, -199.400003, -0.000000);
+				BattleCameraComp->StartMoveWithTwoPointsLinear(CamLocation1, CamRotation1, 1.f, CamLocation2, CamRotation2, 0.8f);
 				break;
 			}
 		}
@@ -315,6 +325,15 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 
 			FVector CamLocation = FVector(-45380.000000,15804.000000,-22563.495955);
 			FRotator CamRotation = FRotator(20.000000,141.000000,0.000000);
+
+			//topdown
+			//(X = -45402.000000, Y = 15669.000000, Z = -22253.495955)
+			//(Pitch = -15.000000, Yaw = 132.000000, Roll = 0.000000)
+			//HardAttack
+			// (X=-45426.206194,Y=16097.681515,Z=-22482.911047)
+			//(Pitch = 9.000000, Yaw = -160.200002, Roll = 0.000000)
+			//(X=-45135.098347,Y=16283.588973,Z=-22556.056840)
+			//(Pitch=15.800000,Yaw=-156.000002,Roll=0.000000)
 			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 2.0f);
 			
 			FTimerHandle EnemyTurnTimer;

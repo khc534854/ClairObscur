@@ -7,6 +7,8 @@
 #include "EnemyFSM.h"
 
 #include "CharacterComponent/SkillRow.h"
+#include "Engine/DamageEvents.h"
+#include "GameSystem/Widget/WidgetComponent/DamagePopupComponent.h"
 
 //enemyHP
 
@@ -57,6 +59,12 @@ AEnemy::AEnemy()
 
 	Tags.Add(FName("Enemy"));
 	Tags.Add(FName("BattlePossible"));
+
+
+	// damageuicomp
+	damageComp = CreateDefaultSubobject<UDamagePopupComponent>(TEXT("DamagePopupComp"));
+
+	
 
 }
 
@@ -365,11 +373,19 @@ void AEnemy::EndCanParry()
 	OnParryEnd.Broadcast(this);
 }
 
-void AEnemy::setEnemyHP(float hitdamage)
+void AEnemy::setEnemyHP(float hitdamage, AActor* DamageCauser)
 {
 	currentHP -= hitdamage;
 	currentHP = FMath::Clamp(currentHP, 0, maxHP);
 
+	// WIDGET UI 띄우기
+	AController* InstigatorCtrl = nullptr;
+	if (APawn* P = Cast<APawn>(DamageCauser)) InstigatorCtrl = P->GetController();
+	else if (DamageCauser) InstigatorCtrl = DamageCauser->GetInstigatorController();
+
+	TakeDamage((float)hitdamage, FDamageEvent(), InstigatorCtrl, DamageCauser);
+
+	
 	OnHPChanged.Broadcast(currentHP, maxHP, this);
 	if (currentHP <= 0)
 	{
@@ -380,6 +396,14 @@ void AEnemy::setEnemyHP(float hitdamage)
 float AEnemy::getEnemyHP()
 {
 	return currentHP;
+}
+
+// 데미지 UI 추가
+float AEnemy::TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent,
+	AController* EventInstigator, AActor* DamageCauser)
+{
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator,
+	                         DamageCauser);
 }
 
 /*void AEnemy::OnEnemyNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)

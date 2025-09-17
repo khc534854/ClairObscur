@@ -38,10 +38,10 @@ ABattleManager::ABattleManager()
 	BattleFieldComp = CreateDefaultSubobject<UBattleFieldComponent>(TEXT("BattleFieldComp"));
 	
 	RootComponent = BattleFieldComp;
-	BattleFieldComp->BaseComp->SetupAttachment(BattleFieldComp);
-	BattleFieldComp->PlayerPos1->SetupAttachment(BattleFieldComp->BaseComp);
-	BattleFieldComp->PlayerPos2->SetupAttachment(BattleFieldComp->BaseComp);
-	BattleFieldComp->EnemyPos->SetupAttachment(BattleFieldComp->BaseComp);
+	//BattleFieldComp->BaseComp->SetupAttachment(BattleFieldComp);
+	BattleFieldComp->PlayerPos1->SetupAttachment(BattleFieldComp);
+	BattleFieldComp->PlayerPos2->SetupAttachment(BattleFieldComp);
+	BattleFieldComp->EnemyPos->SetupAttachment(BattleFieldComp);
 	
 	BattleCameraComp->MainCamera->SetupAttachment(BattleCameraComp);
 	BattleCameraComp->SetupAttachment(RootComponent);

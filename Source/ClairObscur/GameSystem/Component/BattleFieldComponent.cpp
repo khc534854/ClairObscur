@@ -12,9 +12,9 @@ UBattleFieldComponent::UBattleFieldComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	
-	
-	BaseComp =   CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BaseComp"));
-	BaseComp->SetRelativeScale3D(FVector(30.0f, 30.0f, 1.0f));
+	//
+	// BaseComp =   CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BaseComp"));
+	// BaseComp->SetRelativeScale3D(FVector(30.0f, 30.0f, 1.0f));
 	
 	PlayerPos1 = CreateDefaultSubobject<USceneComponent>(TEXT("PlayerPos1"));
 	PlayerPos1->SetRelativeLocation(FVector(-30.0f, -25.0f, 60.5f));

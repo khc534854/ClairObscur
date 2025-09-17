@@ -161,7 +161,7 @@ void ABattleManager::SetParticipant()
 			Character->SetActorLocation(BattleFieldComp->EnemyPos->GetComponentLocation());
 			CurrentTargetEnemy = Cast<AEnemy>(Character);
 		}
-		else if(Character && Character->ActorHasTag(FName("Gustav")))
+		else if(Character && Character->ActorHasTag(FName("Gustave")))
 		{
 			PlayerParty.Add(Cast<APlayerBase>(Character));
 			Cast<APlayerBase>(Character)->OnHPChanged.AddDynamic(this, &ABattleManager::OnCharacterHPChanged);
@@ -210,22 +210,40 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		break;
 	case EBattleState::SelectAction:
 		{
-			player->fsm->SetCommandedState(ECommandedPlayerState::SelectAction);
-			
-			//FVector CamLocation = FVector(currentCharacter->GetActorLocation()) - FVector(150, -200, 0); // 목표 위치 계산
-			//FVector CamLocation = currentCharacter->GetActorLocation() - FVector(-110, 80, -100); // 목표 위치 계산
-			FVector CamLocation = BattleFieldComp->PlayerPos1->GetComponentLocation() - FVector(-110, 80, -100); // 목표 위치 계산
-			FRotator CamRotation = FRotator(0, -200, -5); // 목표 회전 계산
-			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
-			break;
+			if (player->ActorHasTag(FName("Gustave")))
+			{
+				player->fsm->SetCommandedState(ECommandedPlayerState::SelectAction);
+				FVector CamLocation = BattleFieldComp->PlayerPos1->GetComponentLocation() - FVector(-110, 80, -100); // 목표 위치 계산
+				FRotator CamRotation = FRotator(0, -200, -5); // 목표 회전 계산
+				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
+				break;
+			}
+			else if (player->ActorHasTag(FName("Lune")))
+			{
+				player->fsm->SetCommandedState(ECommandedPlayerState::SelectAction);
+				FVector CamLocation = FVector(-45400.788930,15582.677592,-22472.179513); // 목표 위치 계산
+				FRotator CamRotation = FRotator(-6.200000,-191.800003,-6.000000); // 목표 회전 계산
+				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
+				break;
+			}
 		}
 	case EBattleState::SelectSkill:
 		{
-			player->fsm->SetCommandedState(ECommandedPlayerState::SelectSkill);
-			FVector CamLocation = FVector(-45439.000000,16065.000000,-22417.495955); // 목표 위치 계산
-			FRotator CamRotation = FRotator(-15, -170, 5);
-			BattleCameraComp->StartMoveWithCurve(CamLocation, CamRotation, 5.0f);
-
+			if (player->ActorHasTag(FName("Gustave")))
+			{
+				player->fsm->SetCommandedState(ECommandedPlayerState::SelectSkill);
+				FVector CamLocation = FVector(-45439.000000,16065.000000,-22417.495955); // 목표 위치 계산
+				FRotator CamRotation = FRotator(-15, -170, 5);
+				BattleCameraComp->StartMoveWithCurve(CamLocation, CamRotation, 5.0f);
+			}
+			else if (player->ActorHasTag(FName("Lune")))
+			{
+				player->fsm->SetCommandedState(ECommandedPlayerState::SelectSkill);
+				FVector CamLocation = FVector(-45482.592981,15641.757974,-22461.862009); // 목표 위치 계산
+				FRotator CamRotation = FRotator(-8.800000,-184.400003,3.000000);
+				BattleCameraComp->StartMoveWithCurve(CamLocation, CamRotation, 5.0f);
+			}
+			
 			UDataTable* SkillTable = Cast<APlayerBase>(currentCharacter)->fsm->SkillTable.LoadSynchronous();
 			if (SkillTable)
 			{
@@ -233,9 +251,6 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 				SkillTable->GetAllRows(TEXT(""), SkillRows);
 				Cast<USelectSkillWidget>(BattleUIComp->SelectSkillWidget)->PopulateSkills(SkillRows);
 			}
-			
-			//Cast<USelectSkillWidget>(BattleUIComp->SelectSkillWidget)->PopulateSkills(Cast<APlayerBase>(currentCharacter)->fsm->SkillTable);
-			//BattleCameraComp->MoveCameraTo(FVector(currentCharacter->GetActorLocation()) - FVector(110, -80, -80), FRotator(-15, -10, 5));
 			break;
 		}
 	case EBattleState::SelectTarget:
@@ -243,57 +258,97 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			FVector CamLocation = EnemyParty[0]->GetActorLocation() - FVector(-500,0, -300);
 			FRotator CamRotation = FRotator(0, 180, 0); 
 			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
-			//BattleCameraComp->MoveCameraTo(EnemyParty[0]->GetActorLocation() - FVector(150,0, -50), FRotator(0));
 			break;
 		}
 	case EBattleState::PlayerPlayAction:
 		{
-			//기본공격, 연속공격
-			if (SelectedSkillIndex == 1 || SelectedSkillIndex == 0)
+			if (player)
 			{
-				player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
-				BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
-				BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45230.609780,15887.098465,-22405.529680));
-				BattleCameraComp->MainCamera->SetWorldRotation(FRotator(1.600000,-178.400003,0.000000));
-				FVector CamLocation = FVector(-46117.000000,15583.000000,-22460.000000);
-				FRotator CamRotation = FRotator(4.000000,148.000000,0.000000); 
-				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.f);
-				//BattleCameraComp->MoveCameraTo(FVector(-170, 340, 150), FRotator(0, -40, 0));
-				break;
+				if (player->ActorHasTag(FName("Gustave")))
+				{
+					//기본공격, 연속공격
+					if (SelectedSkillIndex == 1 || SelectedSkillIndex == 0)
+					{
+						player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+						BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
+						BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45230.609780,15887.098465,-22405.529680));
+						BattleCameraComp->MainCamera->SetWorldRotation(FRotator(1.600000,-178.400003,0.000000));
+						FVector CamLocation = FVector(-46117.000000,15583.000000,-22460.000000);
+						FRotator CamRotation = FRotator(4.000000,148.000000,0.000000); 
+						BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.f);
+						break;
+					}
+					// 마법 원거리 스킬
+					if (SelectedSkillIndex == 2)
+					{
+						player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+						BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
+						//(X=-45448.102888,Y=16218.238706,Z=-22545.264764)
+						//(Pitch=28.000000,Yaw=-154.000002,Roll=0.000000)
+						// (X=-45304.936031,Y=15897.203615,Z=-22335.620916)
+						// (Pitch=-14.800000,Yaw=-199.400003,Roll=-0.000000)
+						BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45309.274877, 16025.150328, -22494.924233));
+						BattleCameraComp->MainCamera->SetWorldRotation(FRotator(4.000000,  179.400003, 0.000000));
+						// 
+						// 
+						FVector CamLocation1 = FVector(-45448.102888, 16218.238706, -22545.264764);
+						FRotator CamRotation1 = FRotator(28.000000, -154.000002, 0.000000);
+						FVector CamLocation2 = FVector(-45304.936031, 15897.203615, -22335.620916);
+						FRotator CamRotation2 = FRotator(-14.800000, -199.400003, -0.000000);
+						BattleCameraComp->StartMoveWithTwoPointsLinear(CamLocation1, CamRotation1, 1.f, CamLocation2, CamRotation2, 0.8f);
+						break;
+					}
+					// 카운터
+				}
+				else if (player->ActorHasTag(FName("Lune")))
+				{
+					//기본공격, 연속공격
+					if (SelectedSkillIndex == 1)
+					{
+						player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+						BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
+						BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45412.279844,15727.570319,-22467.115845));
+						BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-7.000000,-181.800003,0.000000));
+				
+						FVector CamLocation = FVector(-45037.506092,15653.932457,-22182.810955); // 목표 위치 계산
+						FRotator CamRotation = FRotator(-17.800000,-183.800003,0.000000);
+						BattleCameraComp->StartMoveWithCurve(CamLocation, CamRotation, 20.0f);
+						
+						break;
+					}
+					// 마법 원거리 스킬
+					if (SelectedSkillIndex == 2 || SelectedSkillIndex == 0)
+					{
+						player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+						BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
+						FVector CamLocation = FVector(-45363.521085,15646.643633,-22500.980001);
+						FRotator CamRotation = FRotator(-6.400000,-186.400003,0.000000); 
+						BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 10.f);
+						break;
+					}
+				}
 			}
-			// 마법 원거리 스킬
-			if (SelectedSkillIndex == 2)
+			else //counter
 			{
-				player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
-				BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
-				//(X=-45448.102888,Y=16218.238706,Z=-22545.264764)
-				//(Pitch=28.000000,Yaw=-154.000002,Roll=0.000000)
-				// (X=-45304.936031,Y=15897.203615,Z=-22335.620916)
-				// (Pitch=-14.800000,Yaw=-199.400003,Roll=-0.000000)
-				BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45309.274877, 16025.150328, -22494.924233));
-				BattleCameraComp->MainCamera->SetWorldRotation(FRotator(4.000000,  179.400003, 0.000000));
-				// 
-				// 
-				FVector CamLocation1 = FVector(-45448.102888, 16218.238706, -22545.264764);
-				FRotator CamRotation1 = FRotator(28.000000, -154.000002, 0.000000);
-				FVector CamLocation2 = FVector(-45304.936031, 15897.203615, -22335.620916);
-				FRotator CamRotation2 = FRotator(-14.800000, -199.400003, -0.000000);
-				BattleCameraComp->StartMoveWithTwoPointsLinear(CamLocation1, CamRotation1, 1.f, CamLocation2, CamRotation2, 0.8f);
-				break;
+				auto parryPlayer = PlayerParty[EnemyTargetIndex];
+				if (parryPlayer->ActorHasTag(FName("Gustave")))
+				{
+					parryPlayer->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+					FVector CamLocation = FVector(-45602.650125,16065.516776,-22582.307046);
+					FRotator CamRotation = FRotator(21.800000,-166.600002,0.000000); 
+					BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 10.f);
+					break;
+				}
+				else if (parryPlayer->ActorHasTag(FName("Lune")))
+				{
+					parryPlayer->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+					FVector CamLocation = FVector(-45224.715591,15655.399475,-22498.825878);
+					FRotator CamRotation = FRotator(9.200000,-184.400003,0.000000); 
+					BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 10.f);
+					break;
+				}
 			}
-			// 카운터
-			if (SelectedSkillIndex == 4)
-			{
-				auto parryplayer = PlayerParty[EnemyTargetIndex];
-				parryplayer->fsm->SetCommandedState(ECommandedPlayerState::Attack);
-				//BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
-				//BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45230.609780,15887.098465,-22405.529680));
-				//BattleCameraComp->MainCamera->SetWorldRotation(FRotator(1.600000,-178.400003,0.000000));
-				//FVector CamLocation = FVector(-46117.000000,15583.000000,-22460.000000);
-				//FRotator CamRotation = FRotator(4.000000,148.000000,0.000000); 
-				//BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.f);
-				break;
-			}
+
 		}
 	case EBattleState::EnemyPlayAction:
 	{
@@ -320,9 +375,19 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 					//BattleTimingComp->StartEnemyParrySequence(SkillData->AttackCount);
 				}
 			}
-			
-			FVector CamLocation = FVector(-45380.000000,15804.000000,-22563.495955);
-			FRotator CamRotation = FRotator(20.000000,141.000000,0.000000);
+
+			if (PlayerParty[EnemyTargetIndex]->ActorHasTag(FName("Gustave")))
+			{
+				FVector CamLocation = FVector(-45464.572718,15650.510706,-22154.158833);
+				FRotator CamRotation = FRotator(-22.600000,-238.600004,0.000000);
+				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 2.0f);
+			}
+			else if (PlayerParty[EnemyTargetIndex]->ActorHasTag(FName("Lune")))
+			{
+				FVector CamLocation = FVector(-45330.096456, 15536.760728,-22521.526408);
+				FRotator CamRotation = FRotator(6.800000,-202.400003,0.000000);
+				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 2.0f);
+			}
 
 			//topdown
 			//(X = -45402.000000, Y = 15669.000000, Z = -22253.495955)
@@ -332,7 +397,6 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			//(Pitch = 9.000000, Yaw = -160.200002, Roll = 0.000000)
 			//(X=-45135.098347,Y=16283.588973,Z=-22556.056840)
 			//(Pitch=15.800000,Yaw=-156.000002,Roll=0.000000)
-			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 2.0f);
 
 			EnemyParty[0]->fsm->OnEnemyActionFinished.AddDynamic(this, &ABattleManager::OnEnemyActionFinished);
 		}
@@ -351,12 +415,16 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			break;
 		}
 	case EBattleState::EndBattle:
-		PlayerParty[0]->fsm->ExitCombatMode();
-		EnemyParty[0]->fsm->SetEnemyState(EEnemyState::Idle);
-		EndBattle();
-		break;
+		{
+			for (auto players : PlayerParty)
+			{
+				players->fsm->ExitCombatMode();
+			}
+			EnemyParty[0]->fsm->SetEnemyState(EEnemyState::Idle);
+			EndBattle();
+			break;
+		}
 	case EBattleState::NotBattle:
-
 		break;
 	default:
 		break;
@@ -381,7 +449,13 @@ void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, b
 
 	if (BattleFSMComp->GetBeforeState() == EBattleState::Waiting)
 	{
+		PlayerParty[EnemyTargetIndex]->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
+		PlayerParty[EnemyTargetIndex]->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
 		EnemyParty[0]->fsm->bCounterAttackIng = false;
+		
+		FVector CamLocation = FVector(-45053.463949,16126.722838,-22187.798000);
+		FRotator CamRotation = FRotator(-11.800000,-170.600003,0.000000);
+		BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 1.0f);
 		return;
 	}
 	

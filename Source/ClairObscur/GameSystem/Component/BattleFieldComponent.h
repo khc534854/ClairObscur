@@ -26,9 +26,9 @@ public:
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UStaticMeshComponent* BaseComp;
-	
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// class UStaticMeshComponent* BaseComp;
+	//
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class USceneComponent* PlayerPos1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

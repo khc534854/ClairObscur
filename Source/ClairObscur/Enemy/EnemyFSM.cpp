@@ -65,7 +65,9 @@ void UEnemyFSM::IdleState()
 
 void UEnemyFSM::MoveState()
 {
-
+	if (bCounterAttackIng)
+		return;
+	
 	// targetVector 로 이동을 시키자 1 : target한테 2 :원위치로
 	// 공격 조건 되면 move
 	if (!didIAttack)
@@ -91,6 +93,7 @@ void UEnemyFSM::MoveState()
 		{
 			didIAttack = false;
 			SetEnemyState(EEnemyState::Idle);
+			OnEnemyActionFinished.Broadcast();
 		}
 	}
 

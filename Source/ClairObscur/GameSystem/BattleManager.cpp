@@ -38,10 +38,10 @@ ABattleManager::ABattleManager()
 	BattleFieldComp = CreateDefaultSubobject<UBattleFieldComponent>(TEXT("BattleFieldComp"));
 	
 	RootComponent = BattleFieldComp;
-	BattleFieldComp->BaseComp->SetupAttachment(BattleFieldComp);
-	BattleFieldComp->PlayerPos1->SetupAttachment(BattleFieldComp->BaseComp);
-	BattleFieldComp->PlayerPos2->SetupAttachment(BattleFieldComp->BaseComp);
-	BattleFieldComp->EnemyPos->SetupAttachment(BattleFieldComp->BaseComp);
+	//BattleFieldComp->BaseComp->SetupAttachment(BattleFieldComp);
+	BattleFieldComp->PlayerPos1->SetupAttachment(BattleFieldComp);
+	BattleFieldComp->PlayerPos2->SetupAttachment(BattleFieldComp);
+	BattleFieldComp->EnemyPos->SetupAttachment(BattleFieldComp);
 	
 	BattleCameraComp->MainCamera->SetupAttachment(BattleCameraComp);
 	BattleCameraComp->SetupAttachment(RootComponent);
@@ -265,19 +265,20 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::PlayerPlayAction:
 		{
+			//기본공격, 연속공격
 			if (SelectedSkillIndex == 1 || SelectedSkillIndex == 0)
 			{
 				player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
 				BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
-				BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45341.000000,15607.000000,-22266.146209));
-				BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-9.000000,148.000000,0.004959));
+				BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45230.609780,15887.098465,-22405.529680));
+				BattleCameraComp->MainCamera->SetWorldRotation(FRotator(1.600000,-178.400003,0.000000));
 				FVector CamLocation = FVector(-46117.000000,15583.000000,-22460.000000);
 				FRotator CamRotation = FRotator(4.000000,148.000000,0.000000); 
 				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.f);
 				//BattleCameraComp->MoveCameraTo(FVector(-170, 340, 150), FRotator(0, -40, 0));
 				break;
 			}
-			
+			// 마법 원거리 스킬
 			if (SelectedSkillIndex == 2)
 			{
 				player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
@@ -297,6 +298,18 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 				BattleCameraComp->StartMoveWithTwoPointsLinear(CamLocation1, CamRotation1, 1.f, CamLocation2, CamRotation2, 0.8f);
 				break;
 			}
+			// 카운터
+			if (SelectedSkillIndex == 5)
+			{
+				player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+				BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
+				BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45230.609780,15887.098465,-22405.529680));
+				BattleCameraComp->MainCamera->SetWorldRotation(FRotator(1.600000,-178.400003,0.000000));
+				FVector CamLocation = FVector(-46117.000000,15583.000000,-22460.000000);
+				FRotator CamRotation = FRotator(4.000000,148.000000,0.000000); 
+				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.f);
+				break;
+			}
 		}
 	case EBattleState::EnemyPlayAction:
 	{
@@ -305,24 +318,14 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		{
 			CurrentEnemy->OnParryStart.AddDynamic(this, &ABattleManager::HandleParryStart);
 			CurrentEnemy->OnParryEnd.AddDynamic(this, &ABattleManager::HandleParryEnd);
-			// 1. 적 FSM에게 공격 상태로 전환하라고 직접 명령합니다.
-			//    (EnemyFSM의 Tick 로직 대신 BattleManager가 흐름을 제어)
+
 			if (CurrentEnemy->fsm)
 			{
 				CurrentTargetPlayer = Cast<APlayerBase>(PlayerParty[0]);
 				CurrentEnemy->fsm->SetTargetToMove(CurrentTargetPlayer->GetActorLocation());
 				CurrentEnemy->fsm->SetEnemyState(EEnemyState::Move);
 			}
-
-			// 2. 공격 애니메이션 길이를 가져옵니다.
-			float AttackAnimLength = 10.f;
-			// if (CurrentEnemy->attackAnim) // AEnemy에 기본 공격 몽타주가 할당되어 있다고 가정
-			// {
-			// 	AttackAnimLength = CurrentEnemy->attackAnim->GetPlayLength();
-			// }
-
-			// 3. 애니메이션 길이가 끝나면 턴을 넘기도록 타이머를 설정합니다.
-
+			
 			FVector CamLocation = FVector(-45380.000000,15804.000000,-22563.495955);
 			FRotator CamRotation = FRotator(20.000000,141.000000,0.000000);
 
@@ -335,26 +338,30 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			//(X=-45135.098347,Y=16283.588973,Z=-22556.056840)
 			//(Pitch=15.800000,Yaw=-156.000002,Roll=0.000000)
 			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 2.0f);
-			
-			FTimerHandle EnemyTurnTimer;
-			GetWorld()->GetTimerManager().SetTimer(
-				EnemyTurnTimer,
-				this,
-				&ABattleManager::OnEnemyActionFinished, // 턴 넘기는 함수
-				AttackAnimLength, // 애니메이션 길이만큼 기다림
-				false);
+
+			Cast<AEnemy>(EnemyParty[0])->fsm->OnEnemyActionFinished.AddDynamic(this, &ABattleManager::OnEnemyActionFinished);
+
+			// 임시 딜레이 시간
+			// float AttackAnimLength = 10.f;
+			// FTimerHandle EnemyTurnTimer;
+			// GetWorld()->GetTimerManager().SetTimer(
+			// 	EnemyTurnTimer,
+			// 	this,
+			// 	&ABattleManager::OnEnemyActionFinished, // 턴 넘기는 함수
+			// 	AttackAnimLength, // 애니메이션 길이만큼 기다림
+			// 	false);
 		}
 		break;
 	}
 	case EBattleState::Waiting: // 임시 카운터 스테이트
-		player->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+		BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
 		player->fsm->ExecuteSkill(EnemyParty[0]->GetActorLocation(), 5);
-		BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
-		BattleCameraComp->MainCamera->SetWorldLocation(FVector(-1219.683634, 261.927081, 406.573137));
-		BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-11.200000, -5.600000, 0.000000));
-		FVector CamLocation = FVector(200.351082,239.330103,127.676547);
-		FRotator CamRotation = FRotator(2.200000,-2.800000,0.000000); 
-		BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 8.f);
+		//BattleTimingComp->StartTimingEvent(1.0f, 0.75f, 1.0f);
+		//BattleCameraComp->MainCamera->SetWorldLocation(FVector(-1219.683634, 261.927081, 406.573137));
+		//BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-11.200000, -5.600000, 0.000000));
+		//FVector CamLocation = FVector(200.351082,239.330103,127.676547);
+		//FRotator CamRotation = FRotator(2.200000,-2.800000,0.000000); 
+		//BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 8.f);
 		break;
 	case EBattleState::EndBattle:
 		Cast<APlayerBase>(PlayerParty[0])->fsm->ExitCombatMode();
@@ -385,6 +392,11 @@ void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, b
 		}
 	}
 
+	if (BattleFSMComp->GetBeforeState() == EBattleState::Waiting)
+	{
+		
+	}
+	
 	BattleTurnComp->AdvanceTurn();
 }
 

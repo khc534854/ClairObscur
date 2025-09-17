@@ -55,7 +55,7 @@ void UBattleUIComponent::BeginPlay()
 	if (PlayerHUDWidgetClass)
 	{
 		BattleHUDWidget = CreateWidget<UBattleHUDWidget>(PC, PlayerHUDWidgetClass);
-		BattleHUDWidget->AddToViewport();
+
 	}
 
 	HideBattleWidgets();

@@ -307,7 +307,7 @@ void APlayerBase::setplayerAP(int32 useAP)
 {
 	currentAP -= useAP;
 	currentAP = FMath::Clamp(currentAP, 0,9);
-	OnUseAPDelegate.Broadcast(currentAP);
+	OnUseAPDelegate.Broadcast(currentAP, this);
 }
 
 int32 APlayerBase::getplayerAP() const

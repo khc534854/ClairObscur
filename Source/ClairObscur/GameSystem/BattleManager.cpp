@@ -80,8 +80,18 @@ void ABattleManager::StartBattle()
 	SetParticipant();
 	EnableInput(GetWorld()->GetFirstPlayerController());
 	BindInputActions();
-	BattleUIComp->BattleHUDWidget->UpdateCostBar(PlayerParty[0]->currentAP);
-	
+	for (auto* player : PlayerParty)
+	{
+		if (player->ActorHasTag(FName("Gustave")))
+		{
+			BattleUIComp->BattleHUDWidget->UpdateGustaveCostBar(player->currentAP);
+		}
+		else if (player->ActorHasTag(FName("Lune")))
+		{
+			BattleUIComp->BattleHUDWidget->UpdateLuneCostBar(player->currentAP);
+		}
+	}
+	BattleUIComp->BattleHUDWidget->AddToViewport();
 }
 
 void ABattleManager::EndBattle()
@@ -489,11 +499,15 @@ void ABattleManager::OnCharacterHPChanged(float CurrentHP, float MaxHP, ACharact
 {
 	if (!BattleUIComp || !BattleUIComp->BattleHUDWidget) return;
 
-	// 데미지를 입은 액터가 플레이어인지 적인지 확인
-	if (DamagedActor->ActorHasTag(FName("Player")))
+	if (DamagedActor->ActorHasTag(FName("Gustave")))
 	{
-		BattleUIComp->BattleHUDWidget->UpdatePlayerHP(CurrentHP, MaxHP);
-		BattleUIComp->BattleHUDWidget->UpdatePlayerHPText(CurrentHP, MaxHP);
+		BattleUIComp->BattleHUDWidget->UpdateGustaveHP(CurrentHP, MaxHP);
+		BattleUIComp->BattleHUDWidget->UpdateGustaveHPText(CurrentHP, MaxHP);
+	}
+	else if (DamagedActor->ActorHasTag(FName("Lune")))
+	{
+		BattleUIComp->BattleHUDWidget->UpdateLuneHP(CurrentHP, MaxHP);
+		BattleUIComp->BattleHUDWidget->UpdateLuneHPText(CurrentHP, MaxHP);
 	}
 	else if (DamagedActor->ActorHasTag(FName("Enemy")))
 	{
@@ -501,12 +515,21 @@ void ABattleManager::OnCharacterHPChanged(float CurrentHP, float MaxHP, ACharact
 	}
 }
 
-void ABattleManager::OnPlayerAPChanged(int32 CurrentAP)
+void ABattleManager::OnPlayerAPChanged(int32 CurrentAP, ACharacter* UseCostActor)
 {
 	if (!BattleUIComp || !BattleUIComp->BattleHUDWidget) return;
 
-	BattleUIComp->BattleHUDWidget->UpdateCostBar(CurrentAP);
-	BattleUIComp->BattleHUDWidget->UpdateCostText(CurrentAP);
+	if (UseCostActor->ActorHasTag(FName("Gustave")))
+	{
+		BattleUIComp->BattleHUDWidget->UpdateGustaveCostBar(CurrentAP);
+		BattleUIComp->BattleHUDWidget->UpdateGustaveCostText(CurrentAP);
+	}
+	else if (UseCostActor->ActorHasTag(FName("Lune")))
+	{
+		BattleUIComp->BattleHUDWidget->UpdateLuneCostBar(CurrentAP);
+		BattleUIComp->BattleHUDWidget->UpdateLuneCostText(CurrentAP);
+	}
+
 }
 
 

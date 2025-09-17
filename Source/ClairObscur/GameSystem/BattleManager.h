@@ -48,7 +48,7 @@ protected:
 	void OnCharacterHPChanged(float CurrentHP, float MaxHP, ACharacter* DamagedActor);
 
 	UFUNCTION()
-	void OnPlayerAPChanged(int32 CurrentAP);
+	void OnPlayerAPChanged(int32 CurrentAP, ACharacter* UseCostActor);
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

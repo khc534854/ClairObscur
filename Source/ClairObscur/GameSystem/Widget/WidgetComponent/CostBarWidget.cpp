@@ -9,8 +9,33 @@
 void UCostBarWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+	InitializeCostsArray();
 
-	
+	for (int32 i = 0; i < Costs.Num(); i++)
+	{
+		Costs[i]->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void UCostBarWidget::SetCost(int32 newCost)
+{
+	InitializeCostsArray();
+
+	for (int32 i = 0; i < newCost; i++)
+	{
+		Costs[i]->SetVisibility(ESlateVisibility::Visible);
+	}
+	for (int32 i = newCost; i < Costs.Num(); i++)
+	{
+		Costs[i]->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void UCostBarWidget::InitializeCostsArray()
+{
+	if (bIsCostsInitialized) return;
+
+	Costs.Empty(); // 만약을 위해 비우고 시작
 	Costs.Push(Cost1);
 	Costs.Push(Cost2);
 	Costs.Push(Cost3);
@@ -21,20 +46,8 @@ void UCostBarWidget::NativeConstruct()
 	Costs.Push(Cost8);
 	Costs.Push(Cost9);
 
-	for (int32 i = 0; i < Costs.Num(); i++)
-	{
-		Costs[i]->SetVisibility(ESlateVisibility::Hidden);
-	}
-}
+	// null 포인터가 들어간 경우를 대비해 제거합니다.
+	Costs.Remove(nullptr);
 
-void UCostBarWidget::SetCost(int32 newCost)
-{
-	for (int32 i = 0; i < newCost; i++)
-	{
-		Costs[i]->SetVisibility(ESlateVisibility::Visible);
-	}
-	for (int32 i = newCost; i < Costs.Num(); i++)
-	{
-		Costs[i]->SetVisibility(ESlateVisibility::Hidden);
-	}
+	bIsCostsInitialized = true;
 }

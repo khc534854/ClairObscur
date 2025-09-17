@@ -14,7 +14,7 @@ class AWeaponBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackHitSignature, APlayerBase*, Attacker);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPlayerHPChangedSignature, float, CurrentHP, float, MaxHP, ACharacter*, DamagedActor);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerAPChangedSignature, int32, CurrentAP);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerAPChangedSignature, int32, CurrentAP, ACharacter*, UseCostActor);
 
 UCLASS()
 class CLAIROBSCUR_API APlayerBase : public ACharacter

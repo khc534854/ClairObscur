@@ -48,4 +48,7 @@ public:
 	class UImage* Cost9;
 
 	TArray<class UImage*> Costs;
+
+	bool bIsCostsInitialized = false;
+	void InitializeCostsArray();
 };

@@ -7,13 +7,73 @@
 #include "WidgetComponent/CostBarWidget.h"
 #include "WidgetComponent/CostWidget.h"
 
-void UBattleHUDWidget::UpdatePlayerHP(float CurrentHP, float MaxHP)
+void UBattleHUDWidget::UpdateGustaveHP(float CurrentHP, float MaxHP)
 {
 	if (MaxHP <= 0.f) return;
-	if (!ProgressBarPlayerHP) return;
+	if (!GustaveProgressBarHP) return;
 
 	const float Percent = CurrentHP / MaxHP;
-	ProgressBarPlayerHP->SetPercent(Percent);
+	GustaveProgressBarHP->SetPercent(Percent);
+}
+
+void UBattleHUDWidget::UpdateGustaveHPText(float CurrentHP, float MaxHP)
+{
+	if (!GustaveTextHP) return;
+
+	FFormatNamedArguments Args;
+	Args.Add(TEXT("Current"), FMath::RoundToInt(CurrentHP)); // 소수점을 정수로 변환
+	Args.Add(TEXT("Max"), FMath::RoundToInt(MaxHP));
+
+	FText HPText = FText::Format(NSLOCTEXT("BattleHUD", "HPTextFormat", "{Current} / {Max}"), Args);
+
+	GustaveTextHP->SetText(HPText);
+}
+
+void UBattleHUDWidget::UpdateGustaveCostBar(int32 Cost)
+{
+	if (!GustaveCostBar) return;
+	GustaveCostBar->SetCost(Cost);
+}
+
+void UBattleHUDWidget::UpdateGustaveCostText(int32 Cost)
+{
+	if (!WBP_GustaveCost) return;
+	WBP_GustaveCost->SetCost(FText::AsNumber(Cost));
+}
+
+
+void UBattleHUDWidget::UpdateLuneHP(float CurrentHP, float MaxHP)
+{
+	if (MaxHP <= 0.f) return;
+	if (!LuneProgressBarHP) return;
+
+	const float Percent = CurrentHP / MaxHP;
+	LuneProgressBarHP->SetPercent(Percent);
+}
+
+void UBattleHUDWidget::UpdateLuneHPText(float CurrentHP, float MaxHP)
+{
+	if (!LuneTextHP) return;
+
+	FFormatNamedArguments Args;
+	Args.Add(TEXT("Current"), FMath::RoundToInt(CurrentHP)); // 소수점을 정수로 변환
+	Args.Add(TEXT("Max"), FMath::RoundToInt(MaxHP));
+
+	FText HPText = FText::Format(NSLOCTEXT("BattleHUD", "HPTextFormat", "{Current} / {Max}"), Args);
+
+	LuneTextHP->SetText(HPText);
+}
+
+void UBattleHUDWidget::UpdateLuneCostBar(int32 Cost)
+{
+	if (!LuneCostBar) return;
+	LuneCostBar->SetCost(Cost);
+}
+
+void UBattleHUDWidget::UpdateLuneCostText(int32 Cost)
+{
+	if (!WBP_LuneCost) return;
+	WBP_LuneCost->SetCost(FText::AsNumber(Cost));
 }
 
 void UBattleHUDWidget::UpdateBossHP(float CurrentHP, float MaxHP)
@@ -23,29 +83,4 @@ void UBattleHUDWidget::UpdateBossHP(float CurrentHP, float MaxHP)
 
 	const float Percent = CurrentHP / MaxHP;
 	ProgressBarBossHP->SetPercent(Percent);
-}
-
-void UBattleHUDWidget::UpdateCostBar(int32 Cost)
-{
-	if (!CostBar) return;
-	CostBar->SetCost(Cost);
-}
-
-void UBattleHUDWidget::UpdateCostText(int32 Cost)
-{
-	if (!WBP_Cost) return;
-	WBP_Cost->SetCost(FText::AsNumber(Cost));
-}
-
-void UBattleHUDWidget::UpdatePlayerHPText(float CurrentHP, float MaxHP)
-{
-	if (!TextPlayerHP) return;
-
-	FFormatNamedArguments Args;
-	Args.Add(TEXT("Current"), FMath::RoundToInt(CurrentHP)); // 소수점을 정수로 변환
-	Args.Add(TEXT("Max"), FMath::RoundToInt(MaxHP));
-
-	FText HPText = FText::Format(NSLOCTEXT("BattleHUD", "HPTextFormat", "{Current} / {Max}"), Args);
-
-	TextPlayerHP->SetText(HPText);
 }

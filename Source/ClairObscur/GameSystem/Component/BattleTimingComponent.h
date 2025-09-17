@@ -15,6 +15,7 @@ enum class ETimingMode : uint8
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTimingResultSignature, bool, bSuccess, ETimingMode, TimingMode);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnParrySequenceFinished, bool, bAllParriesSucceeded);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class CLAIROBSCUR_API UBattleTimingComponent : public UActorComponent
@@ -40,7 +41,7 @@ public:
 	// 외부(UI)에서 현재 진행률을 알기 위한 함수
 	float GetCurrentTimingPercent() const;
 
-	
+	//void StartEnemyParrySequence(int32 NumberOfHits);
 	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -49,6 +50,13 @@ public:
 	FOnTimingResultSignature OnTimingResult;
 	bool bCanParry = false;
 
+	//FOnParrySequenceFinished OnParrySequenceFinished;
+	//int32 TotalParryHits;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 MaxAttackCount = 0;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 CurrentParryCount = 0;
+	
 	bool bIsTimingActive = false;
 private:
 	ETimingMode CurrentMode = ETimingMode::Inactive;

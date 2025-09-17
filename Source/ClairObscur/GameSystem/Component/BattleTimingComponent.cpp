@@ -3,6 +3,9 @@
 
 #include "BattleTimingComponent.h"
 
+#include "BattleFSMComponent.h"
+#include "GameSystem/BattleManager.h"
+
 
 // Sets default values for this component's properties
 UBattleTimingComponent::UBattleTimingComponent()
@@ -82,7 +85,25 @@ void UBattleTimingComponent::OnPlayerInput()
 			if (bCanParry)
 			{
 				OnTimingResult.Broadcast(true, ETimingMode::EnemyParry);
+				CurrentParryCount++;
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Parry Success"));
+
+				//counter
+				if (CurrentParryCount == MaxAttackCount)
+				{
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("All Parry Success"));
+					FTimerHandle TempTimerHandle;
+					GetWorld()->GetTimerManager().SetTimer(TempTimerHandle, [this]() {
+						auto tempBattleFSMComp = Cast<ABattleManager>(GetOwner())->BattleFSMComp;
+						if (tempBattleFSMComp)
+						{
+							// 이 코드는 다음 프레임에 안전하게 실행됩니다.
+							tempBattleFSMComp->ChangeState(EBattleState::Waiting);
+						}
+					}, 1.f, false);
+					
+					//Cast<ABattleManager>(GetOwner())->BattleFSMComp->ChangeState(EBattleState::Waiting);
+				}
 			}
 			else
 			{
@@ -105,6 +126,10 @@ float UBattleTimingComponent::GetCurrentTimingPercent() const
 	if (FinishTime <= 0.f) return 0.f;
 	return FMath::Clamp(CurrentTime / FinishTime, 0.f, 1.f);
 }
+//
+// void UBattleTimingComponent::StartEnemyParrySequence(int32 NumberOfHits)
+// {
+// }
 
 
 // Called every frame

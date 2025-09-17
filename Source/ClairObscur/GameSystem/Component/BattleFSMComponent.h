@@ -44,7 +44,9 @@ public:
 	FOnStateChangedSignature OnStateChanged;
 	
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EBattleState CurrentState = EBattleState::NotBattle;  
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EBattleState BeforeState  = EBattleState::NotBattle;
 	
 	void      StartBattleState();

@@ -83,11 +83,13 @@ public:
 	TArray<ACharacter*> BattleParticipant;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Battle")
-	TArray<ACharacter*> PlayerParty; // 아군 목록
+	TArray<class APlayerBase*> PlayerParty; // 아군 목록
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Battle")
-	TArray<ACharacter*> EnemyParty; // 적군 목록
+	TArray<class AEnemy*> EnemyParty; // 적군 목록
 
+
+	
 	UPROPERTY()
 	class AEnemy* CurrentTargetEnemy;
 
@@ -123,7 +125,8 @@ public:
 
 	int32 SelectedSkillIndex;
 	bool pressedQTE = false;
-	
+	int32 EnemyTargetIndex;
+	int32 CurrentPlayerIndex;
 public:
 	// Notify
 	UFUNCTION()

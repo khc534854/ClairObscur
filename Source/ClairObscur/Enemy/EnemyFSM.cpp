@@ -161,6 +161,7 @@ void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 				if (!didIAttack)
 				{
 					enemyOriginLocation = me->GetActorLocation();
+					me->skillIndex = FMath::RandRange(0,1);
 				}
 				moveDirection = (targetVector - me->GetActorLocation()).GetSafeNormal();
 				returnDirection = (enemyOriginLocation - me->GetActorLocation()).GetSafeNormal();

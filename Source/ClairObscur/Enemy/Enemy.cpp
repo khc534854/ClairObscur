@@ -173,13 +173,10 @@ void AEnemy::EnemyIdle()
 
 void AEnemy::EnemyMove()
 {
-
 }
 
 void AEnemy::EnemyAttack()
 {
-	skillIndex = FMath::RandRange(0,1);
-
 	switch (skillIndex)
 	{
 	case 0:

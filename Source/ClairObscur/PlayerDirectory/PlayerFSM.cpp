@@ -155,7 +155,14 @@ void UPlayerFSM::EnterCombatMode()
 	// 무기 스폰
 	player->SpawnWeapon();
 
-	
+	// HP, AP 셋팅
+	player->currentHP = player->maxHP;
+	player->currentAP = 6;
+	player->setplayerHP(0, nullptr);
+	player->setplayerAP(0);
+
+	UE_LOG(LogTemp, Warning, TEXT("AP: %d, HP: %d"), player->currentAP, player->currentHP);
+
 }
 
 void UPlayerFSM::ExitCombatMode()

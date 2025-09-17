@@ -26,5 +26,8 @@ struct FSkillRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSoftObjectPtr<UAnimMontage> SkillMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 AttackCount;
 	
 };

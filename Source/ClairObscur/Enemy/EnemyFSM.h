@@ -6,6 +6,9 @@
 #include "Components/ActorComponent.h"
 #include "EnemyFSM.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemyActionFinishedSignature);
+
 UENUM(BlueprintType)
 enum class EEnemyState : uint8
 {
@@ -91,6 +94,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Parry")
 	bool bCanBeParried = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Parry")
+	bool bCounterAttackIng = false;
 
 	UFUNCTION()
 	EEnemyState GetState();
@@ -119,8 +124,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float distanceTarget = 500;
 
-	
-
-
-
+	UPROPERTY(BlueprintAssignable)
+	FOnEnemyActionFinishedSignature OnEnemyActionFinished;
 };

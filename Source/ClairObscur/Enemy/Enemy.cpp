@@ -5,10 +5,12 @@
 
 #include "EnemyAnimInstance.h"
 #include "EnemyFSM.h"
+#include "Blueprint/UserWidget.h"
 
 #include "CharacterComponent/SkillRow.h"
 #include "Engine/DamageEvents.h"
 #include "GameSystem/Widget/WidgetComponent/DamagePopupComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 //enemyHP
 
@@ -230,35 +232,16 @@ void AEnemy::EnemyDie()
 	{	
 		if (AnimInst)
 		{
+			DestroySelf();
 			float Duration = AnimInst->Montage_Play(dieAnim);
 			currentTime += GetWorld()->DeltaTimeSeconds;
 			if (currentTime > Duration)
-				Destroy();
-
-			if (Duration > 0.f)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Montage %s is playing!"), *dieAnim->GetName());
-				FTimerHandle TimerHandle;
-				GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AEnemy::DestroySelf, Duration, false);
+				//DestroySelf();
+			}
 				
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Failed to play montage %s"), *dieAnim->GetName());
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("No AnimInstance found on enemySkeletalMesh!"));
 		}
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No montage assigned!"));
-	}
-	
-	
-	
 }
 
 void AEnemy::EnemySkill()
@@ -355,10 +338,11 @@ const FSkillRow* AEnemy::GetSkillRowByIndex(int32 Index) const
 
 void AEnemy::DestroySelf()
 {
-	Destroy();
+	EndScene();
+
+
+	//Destroy();
 }
-
-
 
 void AEnemy::StartCanParry()
 {

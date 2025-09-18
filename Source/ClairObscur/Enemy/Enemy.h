@@ -144,5 +144,9 @@ public:
 	
 	float TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent,
 				 AController* EventInstigator, AActor* DamageCauser);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void EndScene();
+	
 	
 };

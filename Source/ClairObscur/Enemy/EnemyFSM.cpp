@@ -55,12 +55,6 @@ void UEnemyFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 
 void UEnemyFSM::IdleState()
 {
-	//currentTime += GetWorld()->DeltaTimeSeconds;
-	if (currentTime > 4)
-	{
-		SetEnemyState(EEnemyState::Move);
-		currentTime = 0;
-	}
 }
 
 void UEnemyFSM::MoveState()
@@ -102,23 +96,10 @@ void UEnemyFSM::MoveState()
 
 void UEnemyFSM::AttackState()
 {
-	//currentTime += GetWorld()->DeltaTimeSeconds;
-	if (currentTime > 5)
-	{
-		SetEnemyState(EEnemyState::Damage);
-		currentTime = 0;
-	}
-	
 }
 
 void UEnemyFSM::DamageState()
 {
-	//currentTime += GetWorld()->DeltaTimeSeconds;
-	if (currentTime > 3)
-	{
-		SetEnemyState(EEnemyState::Move);
-		currentTime = 0;
-	}
 }
 
 void UEnemyFSM::DieState()

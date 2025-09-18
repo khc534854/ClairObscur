@@ -12,10 +12,8 @@ ADamageNumberActor::ADamageNumberActor()
 
 	WidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComp"));
 	RootComponent = WidgetComp;
-	WidgetComp->SetRelativeScale3D(FVector(0.08f));
 	WidgetComp->SetWidgetSpace(EWidgetSpace::World);
-	WidgetComp->SetDrawAtDesiredSize(false);
-	WidgetComp->SetDrawSize(FVector2D(512,256));
+	WidgetComp->SetDrawAtDesiredSize(true);
 	WidgetComp->SetTwoSided(true);
 	WidgetComp->SetPivot(FVector2D(0.5f, 0.5f));
 	

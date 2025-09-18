@@ -49,6 +49,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
 	class UNiagaraComponent* NS_SwordAttackComp;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraSystem* NS_GustavCounterAttackSystem;     // 타격 순간 한번 터지는 FX
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraComponent* NS_GustavCounterAttackComp;
+
+	
 	// 루네 스킬
 	// 1. 베이직 스킬
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")

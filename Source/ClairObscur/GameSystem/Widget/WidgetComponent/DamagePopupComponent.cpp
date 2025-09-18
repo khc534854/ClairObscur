@@ -121,7 +121,7 @@ void UDamagePopupComponent::SpawnDamageNumberAt(const FVector& WorldLoc,
 
 	// 색 규칙
 	const FLinearColor Color = bCritical ? FLinearColor(1.f, 0.5f, 0.f)
-		: (bVictimIsPlayer ? FLinearColor::White : FLinearColor(1.f, 1.f, 0.f));
+		: (bVictimIsPlayer ? FLinearColor::White : FLinearColor::White );
 	
 	FActorSpawnParameters P; 
 	P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;

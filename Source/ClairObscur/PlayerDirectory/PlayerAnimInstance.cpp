@@ -139,7 +139,7 @@ void UPlayerAnimInstance::OnNotifyBegin(FName NotifyName, const FBranchingPointN
 			NS_LuneCounterAttackSystem,
 			OwnerChar->fsm->EnemyLoc,
 			FRotator::ZeroRotator, 
-			FVector(0.3)
+			FVector(1)
 		);
 
 	}

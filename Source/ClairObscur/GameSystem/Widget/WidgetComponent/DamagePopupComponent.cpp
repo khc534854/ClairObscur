@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameSystem/Widget/DamageNumberActor.h"
 #include "GameSystem/Widget/ParryTypeActor.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PlayerDirectory/PlayerBase.h"
 
@@ -57,6 +58,7 @@ void UDamagePopupComponent::OnAnyDamage(AActor* DamagedActor, float Damage,
 	bool bVictimIsPlayer = false;
 	if (const APawn* Pawn = Cast<APawn>(DamagedActor)) bVictimIsPlayer = Pawn->IsPlayerControlled();
 
+	
 	SpawnDamageNumberAt(Impact, FMath::RoundToInt(Damage), bVictimIsPlayer, /*bCritical*/false);
 
 }
@@ -72,8 +74,15 @@ void UDamagePopupComponent::OnPointDamage(AActor* DamagedActor, float Damage,
 	bool bVictimIsPlayer = false;
 	if (const APawn* Pawn = Cast<APawn>(DamagedActor)) bVictimIsPlayer = Pawn->IsPlayerControlled();
 
+	APlayerCameraManager* PCM = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+	FVector CamLoc; FRotator CamRot;
+	PCM->GetCameraViewPoint(CamLoc, CamRot);
+
+	FVector DirFromCam = (CamLoc - HitLocation).GetSafeNormal();
+	FVector SpawnLoc = HitLocation + DirFromCam * 20.f; // 카메라 쪽으로 20cm
+	
 	// 포인트 데미지는 엔진이 위치를 줌 → 그대로 사용
-	SpawnDamageNumberAt(HitLocation, FMath::RoundToInt(Damage), bVictimIsPlayer, false);
+	SpawnDamageNumberAt(SpawnLoc, FMath::RoundToInt(Damage), bVictimIsPlayer, false);
 
 }
 
@@ -120,19 +129,28 @@ void UDamagePopupComponent::SpawnDamageNumberAt(const FVector& WorldLoc,
 	if (!DamageNumberClass) return;
 
 	// 색 규칙
-	const FLinearColor Color = bCritical ? FLinearColor(1.f, 0.5f, 0.f)
-		: (bVictimIsPlayer ? FLinearColor::White : FLinearColor::White );
+	const FLinearColor Color_Damage =  FLinearColor(1.0f, 1.f, 1.f, 1.0f) ;
 	
 	FActorSpawnParameters P; 
 	P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	// 겹침 방지
 	const FVector J = 12.f * UKismetMathLibrary::RandomUnitVector();
-	const FVector Loc = WorldLoc + FVector(J.X, J.Y, 0);
 
+
+
+	auto* PCM = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+	FVector CamLoc; FRotator CamRot;
+	PCM->GetCameraViewPoint(CamLoc, CamRot);
+
+	const FVector CamForward = CamRot.Vector();
+	const float ForwardDist = 60.f;   // 카메라 쪽으로 forward
+
+	const FVector Loc = WorldLoc - CamForward * ForwardDist + FVector(J.X, J.Y, 0);
+	
 	if (ADamageNumberActor* A = GetWorld()->SpawnActor<ADamageNumberActor>(DamageNumberClass, Loc, FRotator::ZeroRotator, P))
 	{
-		A->Init(Amount, Color,1.0f);  // duration
+		A->Init(Amount, Color_Damage,1.0f);  // duration
 	}
 }
 
@@ -153,8 +171,19 @@ void UDamagePopupComponent::SpawnDodgeTypeAt(const FVector& WorldLoc,
 	
 	// 겹침 방지
 	const FVector J = 12.f * UKismetMathLibrary::RandomUnitVector();
-	const FVector Loc = WorldLoc + FVector(J.X, J.Y, 0);
+	//const FVector Loc = WorldLoc + FVector(J.X, J.Y, 0);
 
+	auto* PCM = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+	FVector CamLoc; FRotator CamRot;
+	PCM->GetCameraViewPoint(CamLoc, CamRot);
+
+	const FVector CamForward = CamRot.Vector();
+	const float ForwardDist = 60.f;   // 카메라 쪽
+
+	const FVector Loc = WorldLoc - CamForward * ForwardDist +FVector(J.X, J.Y, 0);
+
+
+	
 	if (AParryTypeActor* A = GetWorld()->SpawnActor<AParryTypeActor>(ParryTypeClass, Loc, FRotator::ZeroRotator))
 	{
 		A->Init(DodgeType, Color,1.0f);  // duration

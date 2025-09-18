@@ -88,7 +88,7 @@ void UPlayerAnimInstance::OnNotifyBegin(FName NotifyName, const FBranchingPointN
 			NS_GustavCounterAttackSystem,
 			OwnerChar->fsm->EnemyLoc,  // 에너미 로케이션에 ns 붙이기
 			FRotator::ZeroRotator,
-			FVector(2)
+			FVector(3)
 		);
 
 	}

@@ -21,7 +21,7 @@ AParryTypeActor::AParryTypeActor()
 	//WidgetComp->SetDrawSize(FVector2D(512,256));
 	WidgetComp->SetTwoSided(true);
 	WidgetComp->SetPivot(FVector2D(0.5f, 0.5f));
-
+	
 }
 
 void AParryTypeActor::Init(FString DodgeType, const FLinearColor& InColor,

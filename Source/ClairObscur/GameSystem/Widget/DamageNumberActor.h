@@ -36,7 +36,7 @@ public:
 	class UDamageUIWidget* WidgetInstance = nullptr;
 
 	int32 Damage = 0;
-	FLinearColor Color = FLinearColor::Red;
+	FLinearColor Color = FLinearColor::White;
 	float Life = 1.0f;
 
 	UPROPERTY(EditAnywhere, Category="DamageNumber")

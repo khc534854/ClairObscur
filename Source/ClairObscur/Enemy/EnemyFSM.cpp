@@ -85,7 +85,7 @@ void UEnemyFSM::MoveState()
 	}
 	else
 	{
-		if ((me->GetActorLocation()-enemyOriginLocation).Size() > 50)
+		if ((me->GetActorLocation()-enemyOriginLocation).Size() > 10)
 		{
 			me->SetActorLocation(me->GetActorLocation() + moveSpeed * returnDirection * GetWorld()->GetDeltaSeconds());
 		}

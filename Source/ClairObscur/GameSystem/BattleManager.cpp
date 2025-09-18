@@ -152,14 +152,23 @@ void ABattleManager::SetParticipant()
 
 	TArray<AActor*> ActorsWithTag;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("BattlePossible"), ActorsWithTag);
-
+	
+	BattleParticipant.SetNum(3);
 	
 	for (AActor* Actor : ActorsWithTag)
 	{
 		ACharacter* Participant = Cast<ACharacter>(Actor);
-		if (Participant)
+		if (Participant->ActorHasTag(FName("Gustave")))
 		{
-			BattleParticipant.Add(Participant);
+			BattleParticipant[1] = Participant;
+		}
+		else if (Participant->ActorHasTag(FName("Lune")))
+		{
+			BattleParticipant[0] = Participant;
+		}
+		else if (Participant->ActorHasTag(FName("Enemy")))
+		{
+			BattleParticipant[2] = Participant;
 		}
 	}
 

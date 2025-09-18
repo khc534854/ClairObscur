@@ -24,7 +24,7 @@ void UBattleHUDWidget::UpdateTurnOrderUI(int32 index)
 
 	TurnBox->ClearChildren();
 
-	if (index == 1)
+	if (index == 0)
 	{
 		TurnBox->AddChildToVerticalBox(WBP_LuneTurnHUD);
 		WBP_LuneTurnHUD->Padding.Bottom = 30;
@@ -32,17 +32,17 @@ void UBattleHUDWidget::UpdateTurnOrderUI(int32 index)
 		WBP_GustaveTurnHUD->Padding.Bottom = 30;
 		TurnBox->AddChildToVerticalBox(WBP_EnemyTurnHUD);
 		WBP_EnemyTurnHUD->Padding.Bottom = 30;
+	}
+	else if (index == 1)
+	{
+		TurnBox->AddChildToVerticalBox(WBP_GustaveTurnHUD);
+		WBP_GustaveTurnHUD->Padding.Bottom = 30;
+		TurnBox->AddChildToVerticalBox(WBP_EnemyTurnHUD);
+		WBP_EnemyTurnHUD->Padding.Bottom = 30;
+		TurnBox->AddChildToVerticalBox(WBP_LuneTurnHUD);
+		WBP_LuneTurnHUD->Padding.Bottom = 30;
 	}
 	else if (index == 2)
-	{
-		TurnBox->AddChildToVerticalBox(WBP_GustaveTurnHUD);
-		WBP_GustaveTurnHUD->Padding.Bottom = 30;
-		TurnBox->AddChildToVerticalBox(WBP_EnemyTurnHUD);
-		WBP_EnemyTurnHUD->Padding.Bottom = 30;
-		TurnBox->AddChildToVerticalBox(WBP_LuneTurnHUD);
-		WBP_LuneTurnHUD->Padding.Bottom = 30;
-	}
-	else if (index == 0)
 	{
 		TurnBox->AddChildToVerticalBox(WBP_EnemyTurnHUD);
 		WBP_EnemyTurnHUD->Padding.Bottom = 30;

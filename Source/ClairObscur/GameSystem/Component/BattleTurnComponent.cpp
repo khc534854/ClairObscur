@@ -34,7 +34,7 @@ void UBattleTurnComponent::StartBattle()
 	if (!BM)
 		BM = Cast<ABattleManager>(GetOwner());
 
-	CurrentTurnIndex = 0;
+	CurrentTurnIndex = 2;
 	AdvanceTurn();
 }
 

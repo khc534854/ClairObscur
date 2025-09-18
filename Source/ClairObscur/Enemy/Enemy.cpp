@@ -88,6 +88,18 @@ void AEnemy::BeginPlay()
 	currentHP = maxHP;
 }
 
+void AEnemy::ReinitializeAnimInstance()
+{
+	if (GetMesh())
+	{
+		AnimInst = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance());
+		if (AnimInst)
+		{
+			AnimInst->ownerEnemy = this;
+		}
+	}
+}
+
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {

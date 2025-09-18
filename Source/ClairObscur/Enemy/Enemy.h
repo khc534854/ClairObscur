@@ -29,6 +29,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable)
+	void ReinitializeAnimInstance();
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

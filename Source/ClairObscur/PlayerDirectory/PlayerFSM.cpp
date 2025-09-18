@@ -79,9 +79,19 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
         player->SetActorLocation(P, true);
 
         // 부드러운 회전(적 쪽 보게)
-        const FRotator Look = UKismetMathLibrary::FindLookAtRotation(player->GetActorLocation(), bMoveOut ? MoveTarget : StartLocation);
-        const FRotator YawOnly(0.f, Look.Yaw, 0.f);
-        player->SetActorRotation( FMath::RInterpTo(player->GetActorRotation(), YawOnly, DeltaTime, 10.f) );
+        //const FRotator Look = UKismetMathLibrary::FindLookAtRotation(player->GetActorLocation(), bMoveOut ? MoveTarget : StartLocation);
+        //const FRotator YawOnly(0.f, Look.Yaw, 0.f);
+        //player->SetActorRotation( FMath::RInterpTo(player->GetActorRotation(), YawOnly, DeltaTime, 10.f) );
+
+	 	FVector Dir = (EnemyLoc - player->GetActorLocation()).GetSafeNormal();
+
+	 	// LookAt 회전 계산
+	 	FRotator LookAtRot = Dir.Rotation();
+
+	 	// 플레이어 회전 적용
+	 	FRotator YawOnly(0.f, LookAtRot.Yaw, 0.f);
+	 	player->SetActorRotation(YawOnly);
+
 
         if (Alpha >= 1.f)
         {
@@ -91,6 +101,9 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
                 bMoveOut = false;
             	bReachedSpotThisRun = true; // 공격지점 도착
             	
+            	// 플레이어 회전 변경
+            	player->SetActorRotation(YawOnly);
+
                 if (const FSkillRow* Row = GetSkillRowByIndex(PendingSkillIndex))
                 {
                     if (UAnimMontage* M = Row->SkillMontage.LoadSynchronous())
@@ -115,8 +128,10 @@ void UPlayerFSM::TickComponent(float DeltaTime, ELevelTick TickType,
             {
                 // 복귀 완료
                 bReturn = false;
-            	player->SetActorRotation(StartRotation);
-            	
+          
+        		// 플레이어 회전 변경
+            	player->SetActorRotation(YawOnly);
+
             	//게임시스템에 "공격 종료" 콜백
             	OnSkillSequenceCompleted.Broadcast(
                 PendingSkillIndex,
@@ -302,7 +317,7 @@ void UPlayerFSM::ExecuteSkill(const FVector& EnemyLocation, int32 SkillIndex)
 	// LookAt 회전 계산
 	FRotator LookAtRot = Dir.Rotation();
 
-	// 플레이어 회전 적용 (Pitch, Roll은 무시하고 Yaw만 쓰는 경우 많음)
+	// 플레이어 회전 적용
 	FRotator YawOnly(0.f, LookAtRot.Yaw, 0.f);
 	player->SetActorRotation(YawOnly);
 	

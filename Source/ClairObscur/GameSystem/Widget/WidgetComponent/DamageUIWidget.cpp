@@ -43,3 +43,13 @@ void UDamageUIWidget::NativeConstruct()
 
 	
 }
+
+void UDamageUIWidget::SetPopupColor(FString DodgeType,
+	const FLinearColor& InColor)
+{
+	if (Txt_Damage)
+	{
+		Txt_Damage->SetText(FText::FromString(DodgeType));
+		Txt_Damage->SetColorAndOpacity(InColor);
+	}
+}

@@ -16,7 +16,7 @@ class CLAIROBSCUR_API UDamageUIWidget : public UUserWidget
 
 
 public:
-	// 데미지 색상
+	// 데미지 색상 및 애니메이션 재생
 	UFUNCTION(BlueprintCallable)
 	void SetDamageAndColor(int32 InDamage, const FLinearColor& InColor);
 	
@@ -32,5 +32,12 @@ public:
 	
 	UPROPERTY(Transient, meta=(BindWidgetAnim))
 	class UWidgetAnimation* TextSizeControl = nullptr;
+
+	
+	UFUNCTION(BlueprintCallable)
+	void SetPopupColor(FString DodgeType, const FLinearColor& InColor);
+	
+
+	
 	
 };

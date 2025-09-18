@@ -42,6 +42,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="VFX")
 	TSubclassOf<class ADamageNumberActor> DamageNumberClass;
 
+
+	UPROPERTY(EditDefaultsOnly, Category="VFX")
+	TSubclassOf<class AParryTypeActor> ParryTypeClass;
+
+	
 	void SpawnDamageNumberAt(const FVector& WorldLoc, int32 Amount, bool bVictimIsPlayer, bool bCritical=false);
+
+
+	
+	// parried, perfect 출력
+	void SpawnDodgeTypeAt(const FVector& WorldLoc, FString DodgeType);
 	
 };

@@ -5,6 +5,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "GameSystem/Widget/DamageNumberActor.h"
+#include "GameSystem/Widget/ParryTypeActor.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PlayerDirectory/PlayerBase.h"
 
@@ -134,6 +135,33 @@ void UDamagePopupComponent::SpawnDamageNumberAt(const FVector& WorldLoc,
 		A->Init(Amount, Color,1.0f);  // duration
 	}
 }
+
+
+void UDamagePopupComponent::SpawnDodgeTypeAt(const FVector& WorldLoc,
+	FString DodgeType)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SpawnDodgeTypeat Call"));
+	if (!ParryTypeClass){ 	UE_LOG(LogTemp, Warning, TEXT("parrytype null Call"));
+		return;} 
+
+	bool bDodge = false;
+	if (DodgeType == TEXT("PERFECT")){bDodge= true;} 
+	
+	// 색 규칙
+	const FLinearColor Color = bDodge ? FLinearColor(1.0f, 0.72f, 0.47f, 1.0f)
+		: FLinearColor(0.68f, 0.85f, 0.90f, 1.0f); 
+	
+	// 겹침 방지
+	const FVector J = 12.f * UKismetMathLibrary::RandomUnitVector();
+	const FVector Loc = WorldLoc + FVector(J.X, J.Y, 0);
+
+	if (AParryTypeActor* A = GetWorld()->SpawnActor<AParryTypeActor>(ParryTypeClass, Loc, FRotator::ZeroRotator))
+	{
+		A->Init(DodgeType, Color,1.0f);  // duration
+	}
+}
+
+
 
 
 

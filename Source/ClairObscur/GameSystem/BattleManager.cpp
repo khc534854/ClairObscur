@@ -426,12 +426,12 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::EndBattle:
 		{
-			for (auto players : PlayerParty)
+			/*for (auto players : PlayerParty)
 			{
 				players->fsm->ExitCombatMode();
 			}
 			EnemyParty[0]->fsm->SetEnemyState(EEnemyState::Idle);
-			EndBattle();
+			EndBattle();*/
 			break;
 		}
 	case EBattleState::NotBattle:

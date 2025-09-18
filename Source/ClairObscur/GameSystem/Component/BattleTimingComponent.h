@@ -37,6 +37,7 @@ public:
 	void EndParryTiming();
 
 	void OnPlayerInput();
+	void OnPlayerInputQ();
 	
 	// 외부(UI)에서 현재 진행률을 알기 위한 함수
 	float GetCurrentTimingPercent() const;

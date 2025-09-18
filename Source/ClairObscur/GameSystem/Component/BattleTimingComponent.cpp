@@ -122,10 +122,55 @@ void UBattleTimingComponent::OnPlayerInput()
 		}
 	default: ;
 	}
+}
 
-	// 타이밍 성공/실패 판정
+void UBattleTimingComponent::OnPlayerInputQ()
+{
+	if (!bIsTimingActive) return;
 
-	 // 한 번 판정하면 타이머 중지
+	switch (CurrentMode)
+	{
+	case ETimingMode::Inactive:
+		break;
+	case ETimingMode::PlayerAttack:
+		{
+			if (CurrentTime >= SuccessStart && CurrentTime <= SuccessEnd)
+			{ 
+				OnTimingResult.Broadcast(true, ETimingMode::PlayerAttack); // 성공 방송
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Timing Success"));
+			}
+			else
+			{
+				OnTimingResult.Broadcast(false, ETimingMode::PlayerAttack); // 실패 방송
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Timing Fail"));
+			}
+			CurrentMode = ETimingMode::Inactive;
+			bIsTimingActive = false;
+			break;
+		}
+	case ETimingMode::EnemyParry:
+		{
+			if (bCanParry)
+			{
+				OnTimingResult.Broadcast(true, ETimingMode::EnemyParry);
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Dodge Success"));
+
+				// PARRY SUCCESS UI
+				auto* bm = Cast<ABattleManager>(GetOwner());
+				auto* player = Cast<APlayerBase>(bm->PlayerParty[bm->EnemyTargetIndex]);
+
+				player->damageComp->SpawnDodgeTypeAt(player->GetActorLocation(), TEXT("PERFECT"));// dodge면 "PERFECT"로 넣어줘야 함.
+			}
+			else
+			{
+				OnTimingResult.Broadcast(false, ETimingMode::EnemyParry); // 창이 닫혔을 때 누르면 실패
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Parry Fail"));
+			}
+			CurrentMode = ETimingMode::Inactive;
+			break;
+		}
+	default: ;
+	}
 }
 
 float UBattleTimingComponent::GetCurrentTimingPercent() const

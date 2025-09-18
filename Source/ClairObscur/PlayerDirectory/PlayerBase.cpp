@@ -227,16 +227,16 @@ void APlayerBase::PlayerJump()
 // 무기 소환
 void APlayerBase::SpawnWeapon()
 {
-	if (SwordInstance || !SwordClass) return;
-	SwordInstance = GetWorld()->SpawnActor<AWeaponBase>(SwordClass, GetActorTransform());
+	if (WeaponInstance || !WeaponClass) return;
+	WeaponInstance = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass, GetActorTransform());
 	
-	if (!SwordInstance) return;
+	if (!WeaponInstance) return;
 
 	// 손 소켓에 부착
 	USkeletalMeshComponent* CharMesh = GetMesh();
 	if (CharMesh)
 	{
-		SwordInstance->AttachToComponent(
+		WeaponInstance->AttachToComponent(
 			CharMesh,
 			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 			SwordSocketName
@@ -248,10 +248,10 @@ void APlayerBase::SpawnWeapon()
 
 void APlayerBase::DestroyWeapon()
 {
-	if (SwordInstance)
+	if (WeaponInstance)
 	{
-		SwordInstance->Destroy();
-		SwordInstance = nullptr;
+		WeaponInstance->Destroy();
+		WeaponInstance = nullptr;
 	}
 
 	bHasWeapon = false;

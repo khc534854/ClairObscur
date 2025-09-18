@@ -149,12 +149,12 @@ public:
 	void DestroyWeapon();
 
 
-	// 검 클래스 & 인스턴스
+	// 무기 클래스, 쿠기 인스턴스
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
-	TSubclassOf<AWeaponBase> SwordClass;
+	TSubclassOf<AWeaponBase> WeaponClass;
 
 	UPROPERTY(Transient)
-	AWeaponBase* SwordInstance;
+	AWeaponBase* WeaponInstance;
 
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	FName SwordSocketName = TEXT("RightHandSocket");

@@ -15,7 +15,11 @@ class CLAIROBSCUR_API UCostWidget : public UUserWidget
 	GENERATED_BODY()
 public:
 	void SetCost(FText currentCost);
+	void SetColor(bool canUse);
 	
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Cost;
+	
+	UPROPERTY(meta = (BindWidget))
+	class UImage* CostBG;
 };

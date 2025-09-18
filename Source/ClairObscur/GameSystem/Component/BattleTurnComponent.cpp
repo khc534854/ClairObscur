@@ -4,9 +4,11 @@
 #include "BattleTurnComponent.h"
 
 #include "BattleFSMComponent.h"
+#include "BattleUIComponent.h"
 #include "ClairObscur/CharacterComponent/SkillComponent.h"
 #include "ClairObscur/GameSystem/BattleManager.h"
 #include "GameFramework/Character.h"
+#include "GameSystem/Widget/BattleHUDWidget.h"
 
 
 // Sets default values for this component's properties
@@ -43,6 +45,11 @@ void UBattleTurnComponent::AdvanceTurn()
 	CurrentTurnIndex = (CurrentTurnIndex + 1) % BM->BattleParticipant.Num();
     
 	BeginNewTurn();
+
+	if (BM->BattleUIComp && BM->BattleUIComp->BattleHUDWidget)
+	{
+		BM->BattleUIComp->BattleHUDWidget->UpdateTurnOrderUI(CurrentTurnIndex);
+	}
 }
 
 void UBattleTurnComponent::BeginNewTurn()

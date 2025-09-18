@@ -14,7 +14,7 @@ class CLAIROBSCUR_API USkillDetailWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	void SetSkillDetails(struct FSkillRow SkillData, int32 skillNum);
+	void SetSkillDetails(struct FSkillRow SkillData, int32 skillNum, class APlayerBase* curPlayer);
 	
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* SkillName;

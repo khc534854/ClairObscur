@@ -259,7 +259,7 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			{
 				TArray<FSkillRow*> SkillRows;
 				SkillTable->GetAllRows(TEXT(""), SkillRows);
-				Cast<USelectSkillWidget>(BattleUIComp->SelectSkillWidget)->PopulateSkills(SkillRows);
+				Cast<USelectSkillWidget>(BattleUIComp->SelectSkillWidget)->PopulateSkills(SkillRows, player);
 			}
 			break;
 		}
@@ -544,10 +544,15 @@ void ABattleManager::QInputAction(const  FInputActionValue& Value)
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
 		// Skill 1
-		// SelectedSkill = Player.SkillList[1];  
-		BattleFSMComp->ChangeState(EBattleState::SelectTarget);
-		SelectedSkillIndex = 1;
-		return;
+		auto player = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
+		if (player->getplayerAP() >= player->fsm->GetSkillRowByIndex(1)->AP )
+		{
+			BattleFSMComp->ChangeState(EBattleState::SelectTarget);
+			SelectedSkillIndex = 1;
+			return;
+		}
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Not enough AP!!"));
+
 	}
 	
 	
@@ -569,10 +574,15 @@ void ABattleManager::WInputAction(const  FInputActionValue& Value)
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectSkill)
 	{
 		// Skill 2
-		// SelectedSkill = Player.SkillList[2];  
-		BattleFSMComp->ChangeState(EBattleState::SelectTarget);
-		SelectedSkillIndex = 2;
-		return;
+		auto player = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
+		if (player->getplayerAP() >= player->fsm->GetSkillRowByIndex(2)->AP )
+		{
+			BattleFSMComp->ChangeState(EBattleState::SelectTarget);
+			SelectedSkillIndex = 2;
+			return;
+		}
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Not enough AP!!"));
+
 	}
 
 	if (BattleFSMComp->GetCurrentState() == EBattleState::SelectAction)

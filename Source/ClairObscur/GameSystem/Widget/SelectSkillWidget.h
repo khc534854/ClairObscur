@@ -17,7 +17,7 @@ class CLAIROBSCUR_API USelectSkillWidget : public UUserWidget
 public:
 	//void SetSkillDatas();
 
-	void PopulateSkills(const TArray<FSkillRow*>& SkillRows);
+	void PopulateSkills(const TArray<FSkillRow*>& SkillRows, class APlayerBase* curPlayer);
 	
 public:
 	UPROPERTY(meta = (BindWidget))

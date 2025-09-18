@@ -6,8 +6,9 @@
 #include "CostWidget.h"
 #include "CharacterComponent/SkillRow.h"
 #include "Components/TextBlock.h"
+#include "PlayerDirectory/PlayerBase.h"
 
-void USkillDetailWidget::SetSkillDetails(FSkillRow SkillData, int32 skillNum)
+void USkillDetailWidget::SetSkillDetails(FSkillRow SkillData, int32 skillNum, APlayerBase* curPlayer)
 {
 	SkillName->SetText(SkillData.SkillName);
 	SkillDetail->SetText(SkillData.SkillDescription);
@@ -28,5 +29,8 @@ void USkillDetailWidget::SetSkillDetails(FSkillRow SkillData, int32 skillNum)
 	{
 		KeyText->SetText(FText::FromString("E"));
 	}
+
+
+	CostWidget->SetColor(curPlayer->getplayerAP() >= SkillData.AP);
 	CostWidget->Cost->SetText(FText::AsNumber(SkillData.AP));
 }

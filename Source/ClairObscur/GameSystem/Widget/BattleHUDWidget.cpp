@@ -4,8 +4,46 @@
 #include "BattleHUDWidget.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/VerticalBox.h"
+#include "GameFramework/Character.h"
 #include "WidgetComponent/CostBarWidget.h"
 #include "WidgetComponent/CostWidget.h"
+
+void UBattleHUDWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if (WBP_LuneTurnHUD)    TurnWidgetMap.Add(FName("Lune"), WBP_LuneTurnHUD);
+	if (WBP_GustaveTurnHUD) TurnWidgetMap.Add(FName("Gustave"), WBP_GustaveTurnHUD);
+	if (WBP_EnemyTurnHUD)   TurnWidgetMap.Add(FName("Enemy"), WBP_EnemyTurnHUD);
+}
+
+void UBattleHUDWidget::UpdateTurnOrderUI(int32 index)
+{
+	if (!TurnBox) return;
+
+	TurnBox->ClearChildren();
+
+	if (index == 1)
+	{
+		TurnBox->AddChildToVerticalBox(WBP_LuneTurnHUD);
+		TurnBox->AddChildToVerticalBox(WBP_GustaveTurnHUD);
+		TurnBox->AddChildToVerticalBox(WBP_EnemyTurnHUD);
+	}
+	else if (index == 2)
+	{
+		TurnBox->AddChildToVerticalBox(WBP_GustaveTurnHUD);
+		TurnBox->AddChildToVerticalBox(WBP_EnemyTurnHUD);
+		TurnBox->AddChildToVerticalBox(WBP_LuneTurnHUD);
+	}
+	else if (index == 0)
+	{
+		TurnBox->AddChildToVerticalBox(WBP_EnemyTurnHUD);
+		TurnBox->AddChildToVerticalBox(WBP_LuneTurnHUD);
+		TurnBox->AddChildToVerticalBox(WBP_GustaveTurnHUD);
+	}
+
+}
 
 void UBattleHUDWidget::UpdateGustaveHP(float CurrentHP, float MaxHP)
 {

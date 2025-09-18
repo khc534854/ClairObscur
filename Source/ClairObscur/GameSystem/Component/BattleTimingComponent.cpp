@@ -97,7 +97,6 @@ void UBattleTimingComponent::OnPlayerInput()
 						auto tempBattleFSMComp = Cast<ABattleManager>(GetOwner())->BattleFSMComp;
 						if (tempBattleFSMComp)
 						{
-							// 이 코드는 다음 프레임에 안전하게 실행됩니다.
 							tempBattleFSMComp->ChangeState(EBattleState::Waiting);
 						}
 					}, 1.f, false);

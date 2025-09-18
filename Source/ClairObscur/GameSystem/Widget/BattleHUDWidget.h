@@ -14,7 +14,12 @@ class CLAIROBSCUR_API UBattleHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+protected:
+	virtual void NativeConstruct() override;
+
 public:
+	void UpdateTurnOrderUI(int32 index);
+	
 	//Gustave
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void UpdateGustaveHP(float CurrentHP, float MaxHP);
@@ -68,4 +73,17 @@ public:
 	UPROPERTY(EditAnywhere, meta=(BindWidget))
 	class UProgressBar* ProgressBarBossHP;
 
+	//turn
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UVerticalBox* TurnBox;
+
+	
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UUserWidget* WBP_LuneTurnHUD;
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UUserWidget* WBP_GustaveTurnHUD;
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UUserWidget* WBP_EnemyTurnHUD;
+	
+	TMap<FName, UUserWidget*> TurnWidgetMap;
 };

@@ -15,6 +15,7 @@ void UCostBarWidget::NativeConstruct()
 	{
 		Costs[i]->SetVisibility(ESlateVisibility::Hidden);
 	}
+	SetCost(6);
 }
 
 void UCostBarWidget::SetCost(int32 newCost)

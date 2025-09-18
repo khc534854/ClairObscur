@@ -80,6 +80,71 @@ void UPlayerAnimInstance::OnNotifyBegin(FName NotifyName, const FBranchingPointN
 
 	}
 
+	// 구스타브 카운터
+	if (NotifyName == "Counter_Hit" && NS_GustavCounterAttackSystem)
+	{
+		NS_GustavCounterAttackComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NS_GustavCounterAttackSystem,
+			OwnerChar->fsm->EnemyLoc,  // 에너미 로케이션에 ns 붙이기
+			FRotator::ZeroRotator,
+			FVector(2)
+		);
+
+	}
+	
+
+	if (NotifyName == "LuneBasic_Hit" && NS_LuneBasicAttackSystem)
+	{
+		NS_LuneBasicAttackComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NS_LuneBasicAttackSystem,
+			OwnerChar->fsm->EnemyLoc, // 에너미 로케이션에 ns 붙이기
+			FRotator::ZeroRotator, 
+			FVector(2)
+	
+		);
+
+	}
+
+	
+	if (NotifyName == "LuneOne_Hit" && NS_LuneOneAttackSystem)
+	{
+		NS_LuneOneAttackComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NS_LuneOneAttackSystem,
+			OwnerChar->fsm->EnemyLoc,  // 에너미 로케이션에 ns 붙이기
+			FRotator::ZeroRotator, 
+			FVector(2)
+	);
+
+	}
+
+	if (NotifyName == "LuneIce_Hit" && NS_LuneIceAttackSystem)
+	{
+		NS_LuneIceAttackComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NS_LuneIceAttackSystem,
+			OwnerChar->fsm->EnemyLoc, // 에너미 로케이션에 ns 붙이기
+			FRotator::ZeroRotator, 
+				FVector(1)
+		);
+
+	}
+
+	if (NotifyName == "LuneCounter_Hit" && NS_LuneCounterAttackSystem)
+	{
+		NS_LuneCounterAttackComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NS_LuneCounterAttackSystem,
+			OwnerChar->fsm->EnemyLoc,
+			FRotator::ZeroRotator, 
+			FVector(0.3)
+		);
+
+	}
+	
+
 	
 }
 

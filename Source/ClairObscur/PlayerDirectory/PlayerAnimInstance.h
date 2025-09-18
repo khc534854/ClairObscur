@@ -48,7 +48,43 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
 	class UNiagaraComponent* NS_SwordAttackComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraSystem* NS_GustavCounterAttackSystem;     // 타격 순간 한번 터지는 FX
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraComponent* NS_GustavCounterAttackComp;
+
 	
+	// 루네 스킬
+	// 1. 베이직 스킬
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraSystem* NS_LuneBasicAttackSystem;     // 타격 순간 한번 터지는 FX
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraComponent* NS_LuneBasicAttackComp;
+
+	// 2. 루네 제물 스킬
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraSystem* NS_LuneOneAttackSystem;     // 타격 순간 한번 터지는 FX
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraComponent* NS_LuneOneAttackComp;
+	
+
+	// 3. 루네 얼음창 스킬 (2연타)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraSystem* NS_LuneIceAttackSystem;     // 타격 순간 한번 터지는 FX
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraComponent* NS_LuneIceAttackComp;
+
+	// 4. 루네 카운터 스킬 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraSystem* NS_LuneCounterAttackSystem;     // 타격 순간 한번 터지는 FX
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FX")
+	class UNiagaraComponent* NS_LuneCounterAttackComp;
 	
 protected:
 	virtual void NativeInitializeAnimation() override;

@@ -5,6 +5,8 @@
 
 #include "BattleFSMComponent.h"
 #include "GameSystem/BattleManager.h"
+#include "GameSystem/Widget/WidgetComponent/DamagePopupComponent.h"
+#include "PlayerDirectory/PlayerBase.h"
 
 
 // Sets default values for this component's properties
@@ -88,6 +90,12 @@ void UBattleTimingComponent::OnPlayerInput()
 				CurrentParryCount++;
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Parry Success"));
 
+				// PARRY SUCCESS UI
+				auto* bm = Cast<ABattleManager>(GetOwner());
+				auto* player = Cast<APlayerBase>(bm->PlayerParty[bm->EnemyTargetIndex]);
+
+				player->damageComp->SpawnDodgeTypeAt(player->GetActorLocation(), TEXT("PARRIED"));// dodge면 "PERFECT"로 넣어줘야 함.
+				
 				//counter
 				if (CurrentParryCount == MaxAttackCount)
 				{

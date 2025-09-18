@@ -80,6 +80,49 @@ void UPlayerAnimInstance::OnNotifyBegin(FName NotifyName, const FBranchingPointN
 
 	}
 
+
+	if (NotifyName == "LuneBasic_Hit" && NS_LuneBasicAttackSystem)
+	{
+		NS_LuneBasicAttackComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NS_LuneBasicAttackSystem,
+			OwnerChar->fsm->EnemyLoc  // 에너미 로케이션에 ns 붙이기
+		);
+
+	}
+
+	
+	if (NotifyName == "LuneOne_Hit" && NS_LuneOneAttackSystem)
+	{
+		NS_LuneOneAttackComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NS_LuneOneAttackSystem,
+			OwnerChar->fsm->EnemyLoc  // 에너미 로케이션에 ns 붙이기
+		);
+
+	}
+
+	if (NotifyName == "LuneIce_Hit" && NS_LuneIceAttackSystem)
+	{
+		NS_LuneIceAttackComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NS_LuneIceAttackSystem,
+			OwnerChar->fsm->EnemyLoc  // 에너미 로케이션에 ns 붙이기
+		);
+
+	}
+
+	if (NotifyName == "LuneCounter_Hit" && NS_LuneCounterAttackSystem)
+	{
+		NS_LuneCounterAttackComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NS_LuneCounterAttackSystem,
+			OwnerChar->fsm->EnemyLoc  // 에너미 로케이션에 ns 붙이기
+		);
+
+	}
+	
+
 	
 }
 

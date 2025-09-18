@@ -22,7 +22,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(BindWidget))
 	class UProgressBar* TimingProgressBar;
 
-private:
+public:
 	UPROPERTY()
 	class UBattleTimingComponent* OwnerTimingComponent;
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	UWidgetAnimation* Timing;
+	
 };

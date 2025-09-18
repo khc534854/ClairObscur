@@ -85,6 +85,7 @@ void ABattleManager::StartBattle()
 		if (player->ActorHasTag(FName("Gustave")))
 		{
 			BattleUIComp->BattleHUDWidget->UpdateGustaveCostBar(player->currentAP);
+			player->SetActorLocation(BattleFieldComp->PlayerPos1->GetComponentLocation());
 		}
 		else if (player->ActorHasTag(FName("Lune")))
 		{

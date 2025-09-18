@@ -4,8 +4,11 @@
 #include "BattleTimingComponent.h"
 
 #include "BattleFSMComponent.h"
+#include "BattleUIComponent.h"
+#include "Blueprint/UserWidget.h"
 #include "GameSystem/BattleManager.h"
 #include "GameSystem/Widget/WidgetComponent/DamagePopupComponent.h"
+#include "GameSystem/Widget/WidgetComponent/QTEWidget.h"
 #include "PlayerDirectory/PlayerBase.h"
 
 
@@ -37,6 +40,12 @@ void UBattleTimingComponent::StartTimingEvent(float Duration, float SuccessWindo
 	SuccessEnd = SuccessWindowEnd;
 	CurrentTime = 0.f;
 	CurrentMode = ETimingMode::PlayerAttack;
+
+	auto timingUI = Cast<ABattleManager>(GetOwner())->BattleUIComp->TimingWidget;
+	if (timingUI)
+	{
+		timingUI->PlayAnimation(Cast<UQTEWidget>(timingUI)->Timing);
+	}
 }
 
 void UBattleTimingComponent::StartParryTiming()

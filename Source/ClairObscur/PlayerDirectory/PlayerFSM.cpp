@@ -296,7 +296,18 @@ void UPlayerFSM::ExecuteSkill(const FVector& EnemyLocation, int32 SkillIndex)
 	MoveDuration = FMath::Max(KINDA_SMALL_NUMBER, dist / MoveSpeed);
 	MoveT = 0.f;
 
-	// 4) 이동 시작 플래그
+	// 4) 플레이어 방향 변경 (적 쪽 보게)
+	FVector Dir = (EnemyLoc - player->GetActorLocation()).GetSafeNormal();
+
+	// LookAt 회전 계산
+	FRotator LookAtRot = Dir.Rotation();
+
+	// 플레이어 회전 적용 (Pitch, Roll은 무시하고 Yaw만 쓰는 경우 많음)
+	FRotator YawOnly(0.f, LookAtRot.Yaw, 0.f);
+	player->SetActorRotation(YawOnly);
+	
+	
+	// 5) 이동 시작 플래그
 	bReturn  = false;
 	bMoveOut = true;
 }

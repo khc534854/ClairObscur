@@ -198,6 +198,21 @@ void UPlayerFSM::ExitCombatMode()
     	
 }
 
+void UPlayerFSM::SetCommandedState(ECommandedPlayerState NewState)
+{
+	if (CurrentState == ECommandedPlayerState::Die)
+		return;
+	
+	CurrentState = NewState;
+	if (NewState == ECommandedPlayerState::Die)
+	{
+		if (DieMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
+		{
+			player->GetMesh()->GetAnimInstance()->Montage_Play(DieMontage);
+		}
+	}
+}
+
 
 // 상태 함수
 void UPlayerFSM::CombatIdleState()
@@ -236,11 +251,12 @@ void UPlayerFSM::DieState()
 {
 	GEngine->AddOnScreenDebugMessage(6, 1, FColor::Orange, TEXT("DieState"));
 
-	if (DieMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
-	{
-		player->GetMesh()->GetAnimInstance()->Montage_Play(DieMontage);
-		player->Destroy();
-	}
+	// if (DieMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
+	// {
+	// 	player->GetMesh()->GetAnimInstance()->Montage_Play(DieMontage);
+	// 	
+	// 	//player->Destroy();
+	// }
 }
 
 

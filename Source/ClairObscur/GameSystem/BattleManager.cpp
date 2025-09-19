@@ -438,8 +438,8 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			parryplayer->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
 			parryplayer->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
 			parryplayer->fsm->ExecuteSkill(EnemyParty[0]->GetActorLocation(), SelectedSkillIndex);
-			BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
 			EnemyParty[0]->fsm->bCounterAttackIng = true;
+			BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
 			break;
 		}
 	case EBattleState::EndBattle:

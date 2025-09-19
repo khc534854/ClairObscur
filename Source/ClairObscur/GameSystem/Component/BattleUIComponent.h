@@ -53,6 +53,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> PlayerHUDWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> EndWidgetClass;
+
 	UPROPERTY()
 	class UUserWidget* SelectActionWidget;
 
@@ -64,6 +67,9 @@ public:
 	class UUserWidget* SelectTargetWidget;
 	UPROPERTY()
 	class UBattleHUDWidget* BattleHUDWidget;
+
+	UPROPERTY()
+	class UUserWidget* DieWidget;
 
 
 	UPROPERTY()

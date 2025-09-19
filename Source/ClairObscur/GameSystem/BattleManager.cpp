@@ -3,6 +3,7 @@
 
 #include "BattleManager.h"
 
+#include "AssetTypeCategories.h"
 #include "Component/BattleTimingComponent.h"
 #include "Component/BattleTurnComponent.h"
 #include "Component/BattleFSMComponent.h"
@@ -14,6 +15,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Component/BattleFieldComponent.h"
 #include "PlayerDirectory/PlayerBase.h"
@@ -384,7 +386,7 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 				{
 					EnemyTargetIndex = FMath::RandRange(0,PlayerParty.Num() - 1);
 					CurrentTargetPlayer = PlayerParty[EnemyTargetIndex];
-					if (CurrentTargetPlayer->getplayerHP() >= 0)
+					if (CurrentTargetPlayer->fsm->GetCommandedState() != ECommandedPlayerState::Die)
 						break;				
 				}
 				
@@ -442,6 +444,7 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::EndBattle:
 		{
+			
 			// for (auto players : PlayerParty)
 			// {
 			// 	players->fsm->ExitCombatMode();
@@ -468,7 +471,7 @@ void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, b
 		Character->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
 		if (EnemyParty[0]->getEnemyHP() <= 0)
 		{
-			BattleFSMComp->ChangeState(EBattleState::EndBattle);
+			//BattleFSMComp->ChangeState(EBattleState::EndBattle);
 			return;
 		}
 	}
@@ -515,6 +518,8 @@ void ABattleManager::OnEnemyActionFinished()
 		{
 			//UI 호출
 			BattleFSMComp->ChangeState(EBattleState::EndBattle);
+			UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(GetWorld()->GetFirstPlayerController());
+			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 			return;
 		}
 	}
@@ -586,10 +591,13 @@ void ABattleManager::QInputAction(const  FInputActionValue& Value)
 	if (BattleFSMComp->GetCurrentState() == EBattleState::EnemyPlayAction)
 	{
 		// Dodge
+
 		BattleTimingComp->OnPlayerInputQ();
 		auto CurrentCharacter = PlayerParty[EnemyTargetIndex];
 		if (CurrentCharacter)
 		{
+			if (CurrentCharacter->fsm->GetCommandedState() == ECommandedPlayerState::Die)
+				return;
 			CurrentCharacter->fsm->OnDodge();
 		}
 		return;
@@ -637,6 +645,8 @@ void ABattleManager::EInputAction(const  FInputActionValue& Value)
 		auto CurrentCharacter =  PlayerParty[EnemyTargetIndex];
 		if (CurrentCharacter)
 		{
+			if (CurrentCharacter->fsm->GetCommandedState() == ECommandedPlayerState::Die)
+				return;
 			CurrentCharacter->fsm->OnParry();
 		}
 		return;

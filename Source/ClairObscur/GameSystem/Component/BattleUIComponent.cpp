@@ -55,7 +55,10 @@ void UBattleUIComponent::BeginPlay()
 	if (PlayerHUDWidgetClass)
 	{
 		BattleHUDWidget = CreateWidget<UBattleHUDWidget>(PC, PlayerHUDWidgetClass);
-
+	}
+	if (EndWidgetClass)
+	{
+		DieWidget = CreateWidget<UUserWidget>(PC, EndWidgetClass);
 	}
 
 	HideBattleWidgets();
@@ -132,6 +135,7 @@ void UBattleUIComponent::OnFSMStateChanged(EBattleState NewState)
 		break;
 	case EBattleState::EndBattle:
 		HideAllWidgets();
+		DieWidget->AddToViewport();
 		break;
 	case EBattleState::NotBattle:
 		break;

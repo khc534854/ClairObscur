@@ -199,9 +199,9 @@ void AEnemy::EnemyAttack()
 	case 1:
 		AnimInst->PlayAttackAnim2();
 		break;
-	/*case 2:
+	case 2:
 		AnimInst->PlayAttackAnim3();
-		break;*/
+		break;
 	}
 	
 

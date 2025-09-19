@@ -150,6 +150,13 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void EndScene();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bPhaseTwo = false;
+
+	UPROPERTY(editAnywhere, BlueprintReadWrite)
+	int32 sizeDT = 1
+	;
 	
 	
 };

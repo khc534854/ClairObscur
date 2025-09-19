@@ -90,8 +90,6 @@ void UEnemyFSM::MoveState()
 			OnEnemyActionFinished.Broadcast();
 		}
 	}
-
-
 }
 
 void UEnemyFSM::AttackState()
@@ -106,16 +104,11 @@ void UEnemyFSM::DieState()
 {
 }
 
-void UEnemyFSM::OnDamageProcess(FVector hitDirection)
-{
-}
 
 void UEnemyFSM::SetTargetToMove(FVector targetVect)
 {
 	targetVector = targetVect;
 }
-
-
 
 void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 {
@@ -142,7 +135,7 @@ void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 				if (!didIAttack)
 				{
 					enemyOriginLocation = me->GetActorLocation();
-					me->skillIndex = FMath::RandRange(2,2);
+					me->skillIndex = FMath::RandRange(0,me->sizeDT);
 				}
 				moveDirection = (targetVector - me->GetActorLocation()).GetSafeNormal();
 				returnDirection = (enemyOriginLocation - me->GetActorLocation()).GetSafeNormal();

@@ -191,8 +191,13 @@ void AEnemy::EnemyMove()
 
 void AEnemy::EnemyAttack()
 {
+	UE_LOG(LogTemp, Warning, TEXT("SkillIndex %d!"), skillIndex);
+	UE_LOG(LogTemp, Warning, TEXT("dtSize %d!"), sizeDT);
+
+
 	switch (skillIndex)
 	{
+
 	case 0:
 		AnimInst->PlayAttackAnim1();
 		break;
@@ -202,6 +207,9 @@ void AEnemy::EnemyAttack()
 	case 2:
 		AnimInst->PlayAttackAnim3();
 		break;
+	case 3:
+		AnimInst->PlayAttackAnim4();
+		break;	
 	}
 	
 
@@ -382,7 +390,16 @@ void AEnemy::setEnemyHP(float hitdamage, AActor* DamageCauser)
 	OnHPChanged.Broadcast(currentHP, maxHP, this);
 	if (currentHP <= 0)
 	{
-		fsm->SetEnemyState(EEnemyState::Die);
+		if (bPhaseTwo)
+		{
+			fsm->SetEnemyState(EEnemyState::Die);
+		}
+		else
+		{
+			currentHP = maxHP;
+			sizeDT = 3;
+			bPhaseTwo = true;
+		}
 	}
 }
 

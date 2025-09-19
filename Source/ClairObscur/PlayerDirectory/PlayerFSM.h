@@ -75,8 +75,8 @@ public:
 	
 	// set
 	UFUNCTION(BlueprintCallable)
-	void SetCommandedState(ECommandedPlayerState NewState)
-	{ CurrentState = NewState;}
+	void SetCommandedState(ECommandedPlayerState NewState);
+
 
 	// get
 	UFUNCTION(BlueprintCallable)

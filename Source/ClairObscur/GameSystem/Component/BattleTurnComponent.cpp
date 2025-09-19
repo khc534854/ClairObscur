@@ -9,6 +9,8 @@
 #include "ClairObscur/GameSystem/BattleManager.h"
 #include "GameFramework/Character.h"
 #include "GameSystem/Widget/BattleHUDWidget.h"
+#include "PlayerDirectory/PlayerBase.h"
+#include "PlayerDirectory/PlayerFSM.h"
 
 
 // Sets default values for this component's properties
@@ -71,6 +73,12 @@ void UBattleTurnComponent::BeginNewTurn()
 	}
 	else
 	{
+		auto player = Cast<APlayerBase>(CurrentCharacter); 
+		if (player && player->fsm->GetCommandedState() == ECommandedPlayerState::Die)
+		{
+			AdvanceTurn();
+			return;
+		}
 		BM->BattleFSMComp->ChangeState(EBattleState::SelectAction);
 
 		FString msg = FString::Printf(TEXT("Turn Start: %s (Player)"), *CurrentCharacter->GetName());

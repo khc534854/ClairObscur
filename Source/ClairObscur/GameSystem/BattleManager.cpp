@@ -380,12 +380,18 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			
 			if (CurrentEnemy->fsm)
 			{
-				EnemyTargetIndex = FMath::RandRange(0,PlayerParty.Num() - 1);
-				CurrentTargetPlayer = PlayerParty[EnemyTargetIndex];
+				while (true)
+				{
+					EnemyTargetIndex = FMath::RandRange(0,PlayerParty.Num() - 1);
+					CurrentTargetPlayer = PlayerParty[EnemyTargetIndex];
+					if (CurrentTargetPlayer->getplayerHP() >= 0)
+						break;				
+				}
+				
 				CurrentEnemy->fsm->SetTargetToMove(CurrentTargetPlayer->GetActorLocation());
 				CurrentEnemy->fsm->SetEnemyState(EEnemyState::Move);
 
-				int32 skillIndexToUse = CurrentEnemy->skillIndex; // 에너미가 현재 스킬을 알도록 수정했다고 가정
+				int32 skillIndexToUse = CurrentEnemy->skillIndex;
 				const FSkillRow* SkillData = CurrentEnemy->GetSkillRowByIndex(skillIndexToUse);
 				
 				if (SkillData)
@@ -436,12 +442,12 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::EndBattle:
 		{
-			/*for (auto players : PlayerParty)
-			{
-				players->fsm->ExitCombatMode();
-			}
-			EnemyParty[0]->fsm->SetEnemyState(EEnemyState::Idle);
-			EndBattle();*/
+			// for (auto players : PlayerParty)
+			// {
+			// 	players->fsm->ExitCombatMode();
+			// }
+			// EnemyParty[0]->fsm->SetEnemyState(EEnemyState::Idle);
+			// EndBattle();
 			break;
 		}
 	case EBattleState::NotBattle:
@@ -494,13 +500,24 @@ void ABattleManager::OnEnemyActionFinished()
 		EnemyCharacter->OnParryEnd.RemoveDynamic(this, &ABattleManager::HandleParryEnd);
 		EnemyParty[0]->fsm->OnEnemyActionFinished.RemoveDynamic(this, &ABattleManager::OnEnemyActionFinished);
 		//EnemyCharacter->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandleEnemyAttackHit);
-		if (PlayerParty[0]->getplayerHP() <= 0)
+
+		int32 DieCount = 0;
+		for (auto* player : PlayerParty)
 		{
+			if (player->getplayerHP() <= 0)
+			{
+				//player->fsm->SetCommandedState(ECommandedPlayerState::Die);
+				DieCount++;
+			}
+		}
+
+		if (DieCount == PlayerParty.Num())
+		{
+			//UI 호출
 			BattleFSMComp->ChangeState(EBattleState::EndBattle);
 			return;
 		}
 	}
-	//EnemyCharacter->fsm->SetEnemyState(EEnemyState::Idle);
 	
 	BattleTurnComp->AdvanceTurn();
 }
@@ -731,6 +748,13 @@ void ABattleManager::OnTimingCheckResult(bool bSuccess, ETimingMode TimingMode)
 				
 						// 3. 플레이어에게 데미지 적용
 						TargetPlayer->setplayerHP(FinalDamage, AttackerEnemy);
+						
+						if (Cast<APlayerBase>(CurrentTargetPlayer)->getplayerHP() <= 0)
+						{
+							Cast<APlayerBase>(CurrentTargetPlayer)->fsm->SetCommandedState(ECommandedPlayerState::Die);
+							return;
+						}
+						
 						TargetPlayer->fsm->OnTakeDamage();
 						
 					}
@@ -800,11 +824,11 @@ void ABattleManager::HandleEnemyAttackHit(AEnemy* Attacker)
 
 			// 3. 타겟 에너미에게 계산된 데미지를 입히라고 명령합니다.
 			Cast<APlayerBase>(CurrentTargetPlayer)->setplayerHP(FinalDamage, Attacker);
+			
+
 		}
-		//if (CurrentTargetPlayer->getplayerHP() <= 0)
-			// 죽는 처리
-		//else
-			CurrentTargetPlayer->fsm->OnTakeDamage();
+
+		CurrentTargetPlayer->fsm->OnTakeDamage();
 	}
 }
 

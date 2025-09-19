@@ -4,6 +4,7 @@
 #include "BattleTimingComponent.h"
 
 #include "BattleFSMComponent.h"
+#include "BattleTurnComponent.h"
 #include "BattleUIComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "GameSystem/BattleManager.h"
@@ -70,22 +71,26 @@ void UBattleTimingComponent::EndParryTiming()
 void UBattleTimingComponent::OnPlayerInput()
 {
 	if (!bIsTimingActive) return;
-
+	
+	auto* bm = Cast<ABattleManager>(GetOwner());
+	
 	switch (CurrentMode)
 	{
 	case ETimingMode::Inactive:
 		break;
 	case ETimingMode::PlayerAttack:
 		{
+			auto* player = Cast<APlayerBase>(bm->BattleTurnComp->GetCurrentTurnCharacter());
 			if (CurrentTime >= SuccessStart && CurrentTime <= SuccessEnd)
 			{ 
 				OnTimingResult.Broadcast(true, ETimingMode::PlayerAttack); // 성공 방송
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Timing Success"));
+				player->damageComp->SpawnDodgeTypeAt(player->GetActorLocation(), TEXT("PERFECT"));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Timing Success"));
 			}
 			else
 			{
 				OnTimingResult.Broadcast(false, ETimingMode::PlayerAttack); // 실패 방송
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Timing Fail"));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Timing Fail"));
 			}
 			CurrentMode = ETimingMode::Inactive;
 			bIsTimingActive = false;
@@ -93,15 +98,15 @@ void UBattleTimingComponent::OnPlayerInput()
 		}
 	case ETimingMode::EnemyParry:
 		{
+			auto* player = Cast<APlayerBase>(bm->PlayerParty[bm->EnemyTargetIndex]);
 			if (bCanParry)
 			{
 				OnTimingResult.Broadcast(true, ETimingMode::EnemyParry);
 				CurrentParryCount++;
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Parry Success"));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Parry Success"));
 
 				// PARRY SUCCESS UI
-				auto* bm = Cast<ABattleManager>(GetOwner());
-				auto* player = Cast<APlayerBase>(bm->PlayerParty[bm->EnemyTargetIndex]);
+
 
 				player->damageComp->SpawnDodgeTypeAt(player->GetActorLocation(), TEXT("PARRIED"));// dodge면 "PERFECT"로 넣어줘야 함.
 				

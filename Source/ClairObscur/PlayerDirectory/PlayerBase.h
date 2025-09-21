@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "PlayerBase.generated.h"
 
+class APlayerGrappleActor;
+class USplineComponent;
 struct FInputActionInstance;
 struct FFindFloorResult;
 
@@ -99,7 +101,11 @@ public: // input
 
 	void JumpInput(const struct FInputActionValue& value);
 
+	// 그래플링
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* ia_grappling;
 
+	void GrapplingInput(const struct FInputActionValue& value);
 	
 public: // 무기 
 	// 무기 소환
@@ -172,6 +178,39 @@ public:
 	// damage ui
 	float TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent,
 				 AController* EventInstigator, AActor* DamageCauser);
+
+
+public: // 그래플링
+	UPROPERTY(VisibleAnywhere) USplineComponent* MoveSpline;
+	UPROPERTY(VisibleAnywhere) USceneComponent*  GrappleRoot;
+
+	UPROPERTY(EditAnywhere, Category="Grapple") float MaxDistance=2500.f;
+	UPROPERTY(EditAnywhere, Category="Grapple") float Speed=2200.f;
+	UPROPERTY(EditAnywhere, Category="Grapple") float StopThreshold=30.f;
+	UPROPERTY(EditAnywhere, Category="Grapple") bool  bArc=false;
+	UPROPERTY(EditAnywhere, Category="Grapple") float ArcScale=0.25f;
+
+	bool    bGrappling=false;
+	float   CurDist=0.f, TotalLen=0.f;
+	FVector AnchorWS=FVector::ZeroVector;
+
+	UPROPERTY(EditDefaultsOnly, Category="Grapple|VFX")
+	TSubclassOf<APlayerGrappleActor> SplineBPClass;
+	UPROPERTY() APlayerGrappleActor* VFX = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* GrappleMontage;
+	
+	void OnGrapplePressed();
+	void OnGrappleReleased();
+
+	bool TraceAnchor(FVector& OutHit) const;
+	void BuildMoveSpline(const FVector& A, const FVector& B, bool bUseArc);
+	void BeginGrapple();
+	void EndGrapple(bool bKeepMomentum);
+
+	void GetView(FVector& OutLoc, FVector& OutDir) const;
+
 	
 };
 

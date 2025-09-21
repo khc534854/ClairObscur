@@ -38,7 +38,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = PlayerAnim)
 	bool isInAir = false;
 
-	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayerAnim)
+	bool bGrappling = false;
 
 	// notify
 	

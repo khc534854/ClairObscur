@@ -47,11 +47,6 @@ APlayerBase::APlayerBase()
 	springArmComp->SetRelativeLocation(FVector(0.000000,0.000000,57.192264));
 	springArmComp->SetRelativeRotation(FRotator(0.000000,90.000000,0.000000));
 	springArmComp->TargetArmLength= 200.f;
-	springArmComp->bUsePawnControlRotation = true;
-	springArmComp->bInheritPitch= true;
-	springArmComp->bInheritYaw= true;
-	springArmComp->bInheritRoll= true;
-	springArmComp->bInheritPitch= true;
 	springArmComp->bEnableCameraLag = true;
 
 	// fsm
@@ -66,6 +61,14 @@ APlayerBase::APlayerBase()
 
 	// tag 붙이기
 	Tags.Append({"BattlePossible", "Player"});
+
+	springArmComp->bUsePawnControlRotation = true;
+	
+	
+	//이단 점프
+	JumpMaxCount = 2;
+	GetCharacterMovement()->JumpZVelocity = 600.f; // 점프 세기
+	GetCharacterMovement()->AirControl    = 2.f;  // 공중 방향 전환
 	
 }
 
@@ -88,8 +91,8 @@ void APlayerBase::BeginPlay()
 			subsys->AddMappingContext(IMC_Player, 0);
 		}
 	}
-	MoveToFloor();
-	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	// 이동속도 초기화
+	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
 
 	// 체력, AP 초기화
 	currentHP = maxHP;
@@ -103,6 +106,12 @@ void APlayerBase::BeginPlay()
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	direction = FTransform(GetControlRotation()).TransformVector(direction);
+	AddMovementInput(direction);
+	// 이거 해줘야 다음에 안움직임.
+	direction = FVector::ZeroVector;
+	
 	
 }
 
@@ -115,114 +124,54 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	if (input)
 	{
-		input->BindAction(IA_MoveForward, ETriggerEvent::Triggered, this, &APlayerBase::MoveForward_Triggered);
-		input->BindAction(IA_MoveRight, ETriggerEvent::Triggered, this, &APlayerBase::MoveRight_Triggered);
-		input->BindAction(IA_JogOverride, ETriggerEvent::Triggered, this, &APlayerBase::JogOverrideAction_Triggered);
-		input->BindAction(IA_JogOverride, ETriggerEvent::Completed, this, &APlayerBase::JogOverrideAction_Finished);
-		input->BindAction(IA_LookTurn, ETriggerEvent::Triggered, this, &APlayerBase::HandleTurnInput);
-		input->BindAction(IA_LookUp, ETriggerEvent::Triggered, this, &APlayerBase::HandleLookUpInput);
-		input->BindAction(IA_SpwanWeapon, ETriggerEvent::Started, this, &APlayerBase::OnToggleWeapon_Triggered);
-		input->BindAction(IA_CustomJump, ETriggerEvent::Started, this, &APlayerBase::PlayerJump);
+		input->BindAction(ia_move, ETriggerEvent::Triggered, this, &APlayerBase::MoveInput);
+		input->BindAction(ia_run, ETriggerEvent::Started, this, &APlayerBase::RunInput);
+		input->BindAction(ia_run, ETriggerEvent::Completed, this, &APlayerBase::RunInput);
+		input->BindAction(ia_turn, ETriggerEvent::Triggered, this, &APlayerBase::TurnInput);
+		input->BindAction(ia_lookup, ETriggerEvent::Triggered, this, &APlayerBase::LookupInput);
+		input->BindAction(ia_jump, ETriggerEvent::Started, this, &APlayerBase::JumpInput);
 	}
 }
 
-// 기본 이동 조작 인풋 관련 함수 
-FVector2D APlayerBase::GetMoveSpeed() const
+void APlayerBase::RunInput(const struct FInputActionValue& value)
 {
-	FVector Maked_Vector = FVector(IA_Move_Forward_Action_Value, IA_Move_Right_Action_Value, 0.f);
-	bool bCondition =  FMath::Abs(Maked_Vector.Length()) < FMath::Abs(0.586)  ;
-	
-	FVector Result =
-		(bCondition ? UKismetMathLibrary::ClampVectorSize(Maked_Vector, 0.287, 0.332) : Maked_Vector);
-	return FVector2D(Result.X, Result.Y);
-
-	
-}
-
-void APlayerBase::MoveToFloor()
-{
-	InitialStepHeight = GetCharacterMovement()->MaxStepHeight;
-	GetCharacterMovement()->MaxStepHeight = LargeStepHeight;
-
-	FFindFloorResult Floor;
-
-	
-	FVector destlocation;
-	FVector capsulelocation = GetCapsuleComponent()->GetComponentLocation();
-
-	GetCharacterMovement()->FindFloor(capsulelocation, Floor, false, nullptr);
-
-	if (Floor.bBlockingHit)
+	bool isPressed = value.Get<bool>();
+	if (isPressed)
 	{
-		const float Z = Floor.FloorDist;   // BP의 Floor Result Floor Dist
-		const FVector Out(0.f, 0.f, Z);    // BP의 Make Vector(Z=FloorDist)
-		destlocation = capsulelocation + Out;
-		this->TeleportTo(destlocation, GetActorRotation());
-		GetCharacterMovement()->MaxStepHeight = InitialStepHeight;
+		GetCharacterMovement()-> MaxWalkSpeed=runSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()-> MaxWalkSpeed=walkSpeed;
 	}
 }
 
-// 카메라시점 이동
-void APlayerBase::HandleLookUpInput(const struct FInputActionValue& value)
+void APlayerBase::MoveInput(const struct FInputActionValue& value)
 {
-	AddControllerPitchInput(value.Get<float>());
-}
+	FVector2d v = value.Get<FVector2d>();
 
-void APlayerBase::HandleTurnInput(const struct FInputActionValue& value)
-{
-	AddControllerYawInput(value.Get<float>());
+	direction.X = v.X;
+	direction.Y = v.Y;
 }
 
 
-// 위아래 이동
-void APlayerBase::HandleForwardInput(float value)
+void APlayerBase::TurnInput(const struct FInputActionValue& value)
 {
-	FRotator YawRot = UKismetMathLibrary::MakeRotator(0,0,GetControlRotation().Yaw);
-	const FVector Forward = UKismetMathLibrary::GetForwardVector(YawRot);
-	AddMovementInput(Forward, value);
-}
-
-void APlayerBase::MoveForward_Triggered(const FInputActionInstance& Instance)
-{
-	IA_Move_Forward_Action_Value = Instance.GetValue().Get<float>();
-	HandleForwardInput(GetMoveSpeed().X);
-}
-
-
-// 좌우 이동
-void APlayerBase::HandleRightInput(float value)
-{
-	FRotator YawRot = UKismetMathLibrary::MakeRotator(0,0,GetControlRotation().Yaw);
-	const FVector Right = UKismetMathLibrary::GetRightVector(YawRot);
-	AddMovementInput(Right, value);
-}
-
-void APlayerBase::MoveRight_Triggered(const FInputActionInstance& Instance)
-{
-	IA_Move_Right_Action_Value = Instance.GetValue().Get<float>();
-	HandleRightInput(GetMoveSpeed().Y);
-}
-
 	
-// 뛰기
-void APlayerBase::JogOverrideAction_Triggered(
-	const FInputActionInstance& Instance)
-{
-	GetCharacterMovement()->MaxWalkSpeed = 600.f;
-
+	float v = value.Get<float>();
+	AddControllerYawInput(v);
 }
 
-void APlayerBase::JogOverrideAction_Finished(
-	const FInputActionInstance& Instance)
+void APlayerBase::LookupInput(const struct FInputActionValue& value)
 {
-	GetCharacterMovement()->MaxWalkSpeed =300.f;
+	float v = value.Get<float>();
+	AddControllerPitchInput(v);
 }
 
-void APlayerBase::PlayerJump()
+void APlayerBase::JumpInput(const struct FInputActionValue& value)
 {
 	Jump();
 }
-
 
 // 무기 소환
 void APlayerBase::SpawnWeapon()

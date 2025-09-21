@@ -29,6 +29,16 @@ public:
 	
 	TWeakObjectPtr<class APlayerBase> OwnerPlayer;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = PlayerAnim)
+	float speed =0;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = PlayerAnim)
+	float direction =0;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = PlayerAnim)
+	bool isInAir = false;
+
+	
 
 	// notify
 	

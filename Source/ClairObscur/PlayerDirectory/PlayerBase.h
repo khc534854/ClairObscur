@@ -63,84 +63,45 @@ public: // input
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UInputMappingContext* IMC_Player;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UInputAction* IA_MoveForward;
+	// 이동
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* ia_move;
+	FVector direction = FVector::ZeroVector;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UInputAction* IA_MoveRight;
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* ia_run;
+
+	// 이동처리
+	void RunInput(const struct FInputActionValue& value);
+	void MoveInput(const struct FInputActionValue& value);
+
+	UPROPERTY(EditAnywhere, Category = "Settings")
+	float walkSpeed = 200.f;
+
+	UPROPERTY(EditAnywhere, Category = "Settings")
+	float runSpeed = 600.f;
+
+	// 회전
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* ia_turn;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* ia_lookup;
+
+	// 회전 처리
+	void TurnInput(const struct FInputActionValue& value);
+	void LookupInput(const struct FInputActionValue& value);
+
+
+	// 점프
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* ia_jump;
+
+	void JumpInput(const struct FInputActionValue& value);
+
 
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UInputAction* IA_JogOverride;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UInputAction* IA_LookTurn;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UInputAction* IA_LookUp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UInputAction* IA_CustomJump;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UInputAction* IA_SpwanWeapon;
-
-	
-public: // input function
-
-	UFUNCTION()
-	FVector2D GetMoveSpeed() const;
-	
-	UFUNCTION()
-	void MoveToFloor();
-	
-	UFUNCTION()
-	void HandleLookUpInput(const struct FInputActionValue& value);
-	
-	UFUNCTION()
-	void HandleRightInput(float value);
-	
-	UFUNCTION()
-	void HandleForwardInput(float value);
-	
-	UFUNCTION()
-	void HandleTurnInput(const struct FInputActionValue& value);
-
-	UFUNCTION()
-	void MoveForward_Triggered(const FInputActionInstance& Instance);
-	
-
-	UFUNCTION()
-	void MoveRight_Triggered(const FInputActionInstance& Instance);
-
-
-	UFUNCTION()
-	void JogOverrideAction_Triggered(const FInputActionInstance& Instance);
-
-	UFUNCTION()
-	void JogOverrideAction_Finished(const FInputActionInstance& Instance);
-	
-	UFUNCTION()
-	void PlayerJump();
-
-	
-
-
-public: // input variables
-	UPROPERTY(EditDefaultsOnly)
-	float IA_Move_Forward_Action_Value;
-
-	UPROPERTY(EditDefaultsOnly)
-	float IA_Move_Right_Action_Value;
-	
-	UPROPERTY(EditDefaultsOnly)
-	float InitialStepHeight;
-	
-	UPROPERTY(EditDefaultsOnly)
-	float LargeStepHeight;
-
-	
-public:
+public: // 무기 
 	// 무기 소환
 	UFUNCTION(BlueprintCallable)
 	void SpawnWeapon();
@@ -166,7 +127,7 @@ public:
 	void OnToggleWeapon_Triggered(const FInputActionInstance& Instance);
 
 
-public:
+public: // 스탯
 	UPROPERTY(EditAnywhere, Category = "Stat")
 	int32 maxHP = 150;
 	

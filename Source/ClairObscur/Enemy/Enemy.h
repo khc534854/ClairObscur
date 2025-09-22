@@ -155,8 +155,8 @@ public:
 	bool bPhaseTwo = false;
 
 	UPROPERTY(editAnywhere, BlueprintReadWrite)
-	int32 sizeDT = 1
-	;
+	int32 sizeDT = 1;
 	
-	
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartPhaseTwo();
 };

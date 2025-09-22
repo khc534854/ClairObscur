@@ -399,6 +399,8 @@ void AEnemy::setEnemyHP(float hitdamage, AActor* DamageCauser)
 			currentHP = maxHP;
 			sizeDT = 3;
 			bPhaseTwo = true;
+			StartPhaseTwo();
+			AnimInst->PhaseTwoAnim();
 		}
 	}
 }

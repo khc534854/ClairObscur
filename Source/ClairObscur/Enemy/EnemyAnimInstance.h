@@ -47,4 +47,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayAttackAnim4();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void PhaseTwoAnim();
+
 };

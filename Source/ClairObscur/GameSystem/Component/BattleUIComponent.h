@@ -69,9 +69,15 @@ public:
 	class UBattleHUDWidget* BattleHUDWidget;
 
 	UPROPERTY()
-	class UUserWidget* DieWidget;
+	class UBattleEndWidget* DieWidget;
 
 
 	UPROPERTY()
 	TArray<UUserWidget*> AllWidgets;
+
+
+	// Die Widget 업데이트
+	UFUNCTION()
+	void OnBattleEnded();
+	
 };

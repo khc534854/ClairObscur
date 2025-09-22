@@ -4,6 +4,7 @@
 #include "BattleTimingComponent.h"
 
 #include "BattleFSMComponent.h"
+#include "BattleResultDataComponent.h"
 #include "BattleTurnComponent.h"
 #include "BattleUIComponent.h"
 #include "Blueprint/UserWidget.h"
@@ -81,11 +82,15 @@ void UBattleTimingComponent::OnPlayerInput()
 	case ETimingMode::PlayerAttack:
 		{
 			auto* player = Cast<APlayerBase>(bm->BattleTurnComp->GetCurrentTurnCharacter());
+			
 			if (CurrentTime >= SuccessStart && CurrentTime <= SuccessEnd)
 			{ 
 				OnTimingResult.Broadcast(true, ETimingMode::PlayerAttack); // 성공 방송
 				player->damageComp->SpawnDodgeTypeAt(player->GetActorLocation(), TEXT("PERFECT"));
 				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Timing Success"));
+
+				// 전투 결과 업데이트
+				bm->BattleResultComp->DodgeSuccess();
 			}
 			else
 			{
@@ -172,8 +177,10 @@ void UBattleTimingComponent::OnPlayerInputQ()
 				// PARRY SUCCESS UI
 				auto* bm = Cast<ABattleManager>(GetOwner());
 				auto* player = Cast<APlayerBase>(bm->PlayerParty[bm->EnemyTargetIndex]);
-
 				player->damageComp->SpawnDodgeTypeAt(player->GetActorLocation(), TEXT("PERFECT"));// dodge면 "PERFECT"로 넣어줘야 함.
+
+				// 전투 결과 업데이트
+				bm->BattleResultComp->ParrySuccess();
 			}
 			else
 			{

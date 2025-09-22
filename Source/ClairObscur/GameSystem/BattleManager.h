@@ -96,6 +96,9 @@ public:
 	UPROPERTY()
 	class APlayerBase* CurrentTargetPlayer;
 
+	UPROPERTY()
+	ACharacter* CurrentActionActor;
+
 public:
 	// Input
 	UPROPERTY(EditAnywhere, Category = "Input")

@@ -39,6 +39,8 @@ float UBattleDamageCalculateComponent::CalculateFinalDamage(ACharacter* Attacker
 	const struct FSkillRow& SkillData)
 {
 	float FinalDamage = SkillData.BasicDamage * MultiplyDamage;
+
+	FinalDamage = FinalDamage + FMath::RandRange(-5, 5);
 	
 	
 	

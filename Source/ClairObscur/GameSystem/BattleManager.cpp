@@ -228,6 +228,8 @@ void ABattleManager::BindInputActions()
 void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 {
 	auto currentCharacter = BattleTurnComp->GetCurrentTurnCharacter();
+
+	CurrentActionActor = BattleTurnComp->GetCurrentTurnCharacter();
 	pressedQTE = false;
 	//아이템
 	//(X=-45704.661145,Y=16074.760444,Z=-22519.605725)
@@ -284,7 +286,7 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::SelectTarget:
 		{
-			FVector CamLocation = EnemyParty[0]->GetActorLocation() - FVector(-500,0, -300);
+			FVector CamLocation = CurrentTargetEnemy->GetActorLocation() - FVector(-500,0, -300);
 			FRotator CamRotation = FRotator(0, 180, 0); 
 			BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 5.0f);
 			break;
@@ -359,25 +361,24 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			}
 			else //counter
 			{
-				auto parryPlayer = PlayerParty[EnemyTargetIndex];
-				if (parryPlayer->ActorHasTag(FName("Gustave")))
+				//auto parryPlayer = PlayerParty[EnemyTargetIndex];
+				if (CurrentTargetPlayer->ActorHasTag(FName("Gustave")))
 				{
-					parryPlayer->fsm->SetCommandedState(ECommandedPlayerState::Attack);
-					FVector CamLocation = FVector(-45602.650125,16065.516776,-22582.307046);
-					FRotator CamRotation = FRotator(21.800000,-166.600002,0.000000); 
+					CurrentTargetPlayer->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+					FVector CamLocation = FVector(-45138.781190, 16307.293779, -22082.548800);
+					FRotator CamRotation = FRotator(-26.600000, -160.000002, 0.000000);
 					BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 10.f);
 					break;
 				}
-				else if (parryPlayer->ActorHasTag(FName("Lune")))
+				else if (CurrentTargetPlayer->ActorHasTag(FName("Lune")))
 				{
-					parryPlayer->fsm->SetCommandedState(ECommandedPlayerState::Attack);
+					CurrentTargetPlayer->fsm->SetCommandedState(ECommandedPlayerState::Attack);
 					FVector CamLocation = FVector(-45224.715591,15655.399475,-22498.825878);
 					FRotator CamRotation = FRotator(9.200000,-184.400003,0.000000); 
 					BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 10.f);
 					break;
 				}
 			}
-
 		}
 	case EBattleState::EnemyPlayAction:
 	{
@@ -407,17 +408,16 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 				{
 					BattleTimingComp->MaxAttackCount = SkillData->AttackCount;
 					BattleTimingComp->CurrentParryCount = 0;
-					//BattleTimingComp->StartEnemyParrySequence(SkillData->AttackCount);
 				}
 			}
 
-			if (PlayerParty[EnemyTargetIndex]->ActorHasTag(FName("Gustave")))
+			if (CurrentTargetPlayer->ActorHasTag(FName("Gustave")))
 			{
 				FVector CamLocation = FVector(-45464.572718,15650.510706,-22154.158833);
 				FRotator CamRotation = FRotator(-22.600000,-238.600004,0.000000);
 				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 2.0f);
 			}
-			else if (PlayerParty[EnemyTargetIndex]->ActorHasTag(FName("Lune")))
+			else if (CurrentTargetPlayer->ActorHasTag(FName("Lune")))
 			{
 				FVector CamLocation = FVector(-45385.215001,15349.028405,-22390.926507);
 				FRotator CamRotation = FRotator(-7.000000,124.200002,-1.000000);
@@ -433,31 +433,43 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			//(X=-45135.098347,Y=16283.588973,Z=-22556.056840)
 			//(Pitch=15.800000,Yaw=-156.000002,Roll=0.000000)
 
-			EnemyParty[0]->fsm->OnEnemyActionFinished.AddDynamic(this, &ABattleManager::OnEnemyActionFinished);
+			CurrentTargetEnemy->fsm->OnEnemyActionFinished.AddDynamic(this, &ABattleManager::OnEnemyActionFinished);
 		}
 		break;
 	}
 	case EBattleState::Waiting: // 임시 카운터 스테이트
 		{
-			auto parryplayer = PlayerParty[EnemyTargetIndex];
+			CurrentActionActor = CurrentTargetPlayer;
+			//auto parryplayer = PlayerParty[EnemyTargetIndex];
+			BattleDamageCalcComp->MultiplyDamage = 1.f;
 			SelectedSkillIndex = 4;
-			CurrentTargetEnemy = EnemyParty[0];
-			parryplayer->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
-			parryplayer->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
-			parryplayer->fsm->ExecuteSkill(EnemyParty[0]->GetActorLocation(), SelectedSkillIndex);
-			EnemyParty[0]->fsm->bCounterAttackIng = true;
-			BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
+			if (CurrentTargetPlayer && CurrentTargetPlayer->fsm)
+			{
+				CounterPlayer = CurrentTargetPlayer;
+				CurrentTargetEnemy->fsm->bCounterAttackIng = true;
+				//parryplayer->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
+				//parryplayer->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+
+				//PlayerParty[0]->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
+				//PlayerParty[0]->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+				
+				//PlayerParty[1]->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
+				//PlayerParty[1]->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+				
+				CounterPlayer->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
+				CounterPlayer->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+				CounterPlayer->fsm->ExecuteSkill(CurrentTargetEnemy->GetActorLocation(), SelectedSkillIndex);
+				BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
+			}
 			break;
 		}
-	case EBattleState::EndBattle:
+	case EBattleState::EndWinBattle:
 		{
-			
-			// for (auto players : PlayerParty)
-			// {
-			// 	players->fsm->ExitCombatMode();
-			// }
-			// EnemyParty[0]->fsm->SetEnemyState(EEnemyState::Idle);
-			// EndBattle();
+			BattleResultComp->EndBattle();
+			break;
+		}
+	case EBattleState::EndLoseBattle:
+		{
 			break;
 		}
 	case EBattleState::NotBattle:
@@ -471,23 +483,30 @@ void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, b
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Action Finished. Advancing to next turn."));
 
-	auto* Character = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
-	if (Character)
+	//auto* Character = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
+	auto* Character = Cast<APlayerBase>(CurrentActionActor);
+	if (Character && Character != CounterPlayer)
 	{
 		Character->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
 		Character->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
-		if (EnemyParty[0]->getEnemyHP() <= 0)
+		if (CurrentTargetEnemy->getEnemyHP() <= 0)
 		{
-			//BattleFSMComp->ChangeState(EBattleState::EndBattle);
+			BattleFSMComp->ChangeState(EBattleState::EndWinBattle);
 			return;
 		}
 	}
 
-	if (BattleFSMComp->GetBeforeState() == EBattleState::Waiting)
+	if (BattleFSMComp->GetBeforeState() == EBattleState::Waiting && CounterPlayer)
 	{
-		PlayerParty[EnemyTargetIndex]->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
-		PlayerParty[EnemyTargetIndex]->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
-		EnemyParty[0]->fsm->bCounterAttackIng = false;
+		CounterPlayer->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
+		CounterPlayer->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+		//PlayerParty[0]->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
+		//PlayerParty[0]->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+		//PlayerParty[1]->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
+		//PlayerParty[1]->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+		CounterPlayer = nullptr;
+
+		CurrentTargetEnemy->fsm->bCounterAttackIng = false;
 		
 		FVector CamLocation = FVector(-45053.463949,16126.722838,-22187.798000);
 		FRotator CamRotation = FRotator(-11.800000,-170.600003,0.000000);
@@ -500,15 +519,12 @@ void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, b
 
 void ABattleManager::OnEnemyActionFinished()
 {
-	ACharacter* Character = BattleTurnComp->GetCurrentTurnCharacter();
-	AEnemy* EnemyCharacter = Cast<AEnemy>(Character);
-
-	if (EnemyCharacter)
+	if (CurrentTargetEnemy)
 	{
 		// 에너미의 전체 행동이 끝났으므로, 여기서 구독을 해제합니다.
-		EnemyCharacter->OnParryStart.RemoveDynamic(this, &ABattleManager::HandleParryStart);
-		EnemyCharacter->OnParryEnd.RemoveDynamic(this, &ABattleManager::HandleParryEnd);
-		EnemyParty[0]->fsm->OnEnemyActionFinished.RemoveDynamic(this, &ABattleManager::OnEnemyActionFinished);
+		CurrentTargetEnemy->OnParryStart.RemoveDynamic(this, &ABattleManager::HandleParryStart);
+		CurrentTargetEnemy->OnParryEnd.RemoveDynamic(this, &ABattleManager::HandleParryEnd);
+		CurrentTargetEnemy->fsm->OnEnemyActionFinished.RemoveDynamic(this, &ABattleManager::OnEnemyActionFinished);
 		//EnemyCharacter->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandleEnemyAttackHit);
 
 		int32 DieCount = 0;
@@ -524,12 +540,17 @@ void ABattleManager::OnEnemyActionFinished()
 		if (DieCount == PlayerParty.Num())
 		{
 			//UI 호출
-			BattleFSMComp->ChangeState(EBattleState::EndBattle);
+			BattleFSMComp->ChangeState(EBattleState::EndLoseBattle);
 			UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(GetWorld()->GetFirstPlayerController());
 			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 			return;
 		}
+
+		if (CurrentTargetEnemy->fsm->bCounterAttackIng)
+			return;
 	}
+
+	
 	
 	BattleTurnComp->AdvanceTurn();
 }
@@ -600,12 +621,12 @@ void ABattleManager::QInputAction(const  FInputActionValue& Value)
 		// Dodge
 
 		BattleTimingComp->OnPlayerInputQ();
-		auto CurrentCharacter = PlayerParty[EnemyTargetIndex];
-		if (CurrentCharacter)
+
+		if (CurrentTargetPlayer)
 		{
-			if (CurrentCharacter->fsm->GetCommandedState() == ECommandedPlayerState::Die)
+			if (CurrentTargetPlayer->fsm->GetCommandedState() == ECommandedPlayerState::Die)
 				return;
-			CurrentCharacter->fsm->OnDodge();
+			CurrentTargetPlayer->fsm->OnDodge();
 		}
 		return;
 	}
@@ -649,12 +670,12 @@ void ABattleManager::EInputAction(const  FInputActionValue& Value)
 	{
 		// parry
 		BattleTimingComp->OnPlayerInput();
-		auto CurrentCharacter =  PlayerParty[EnemyTargetIndex];
-		if (CurrentCharacter)
+		
+		if (CurrentTargetPlayer)
 		{
-			if (CurrentCharacter->fsm->GetCommandedState() == ECommandedPlayerState::Die)
+			if (CurrentTargetPlayer->fsm->GetCommandedState() == ECommandedPlayerState::Die)
 				return;
-			CurrentCharacter->fsm->OnParry();
+			CurrentTargetPlayer->fsm->OnParry();
 		}
 		return;
 	}
@@ -701,7 +722,6 @@ void ABattleManager::FInputAction(const  FInputActionValue& Value)
 
 		auto CurrentCharacter = Cast<APlayerBase>(BattleTurnComp->GetCurrentTurnCharacter());
 		// 임시로 첫 번째 적을 타겟으로 지정
-		CurrentTargetEnemy = EnemyParty[0]; 
 
 		if (CurrentCharacter && CurrentCharacter->fsm)
 		{
@@ -748,33 +768,28 @@ void ABattleManager::OnTimingCheckResult(bool bSuccess, ETimingMode TimingMode)
 		{
 			BattleDamageCalcComp->MultiplyDamage = 1;
 
-			if (EnemyParty[0] && PlayerParty[EnemyTargetIndex])
+			if (CurrentTargetEnemy && CurrentTargetPlayer)
 			{
-				auto AttackerEnemy = EnemyParty[0];
-				auto TargetPlayer = PlayerParty[EnemyTargetIndex];
-			
-				if(AttackerEnemy && TargetPlayer)
+				// 1. 적이 사용 중인 스킬 정보를 가져옵니다.
+				// (AEnemy에 현재 사용 스킬 인덱스를 저장하는 변수가 필요합니다)
+				const FSkillRow* SkillData = CurrentTargetEnemy->GetSkillRowByIndex(CurrentTargetEnemy->skillIndex);
+				if (SkillData)
 				{
-					// 1. 적이 사용 중인 스킬 정보를 가져옵니다.
-					// (AEnemy에 현재 사용 스킬 인덱스를 저장하는 변수가 필요합니다)
-					const FSkillRow* SkillData = AttackerEnemy->GetSkillRowByIndex(AttackerEnemy->skillIndex);
-					if (SkillData)
-					{
-						// 2. 데미지 계산
-						float FinalDamage = BattleDamageCalcComp->CalculateFinalDamage(AttackerEnemy, TargetPlayer, *SkillData);
+					// 2. 데미지 계산
+					float FinalDamage = BattleDamageCalcComp->CalculateFinalDamage(CurrentTargetEnemy, CurrentTargetPlayer, *SkillData);
 				
-						// 3. 플레이어에게 데미지 적용
-						TargetPlayer->setplayerHP(FinalDamage, AttackerEnemy);
-						
-						if (Cast<APlayerBase>(CurrentTargetPlayer)->getplayerHP() <= 0)
-						{
-							Cast<APlayerBase>(CurrentTargetPlayer)->fsm->SetCommandedState(ECommandedPlayerState::Die);
-							return;
-						}
-						
-						TargetPlayer->fsm->OnTakeDamage();
-						
+					// 3. 플레이어에게 데미지 적용
+					BattleResultComp->RecordDamageReceived(FinalDamage);
+					CurrentTargetPlayer->setplayerHP(FinalDamage, CurrentTargetEnemy);
+					
+					if (CurrentTargetPlayer->getplayerHP() <= 0)
+					{
+						CurrentTargetPlayer->fsm->SetCommandedState(ECommandedPlayerState::Die);
+						return;
 					}
+					
+					CurrentTargetPlayer->fsm->OnTakeDamage();
+					
 				}
 			}
 		}
@@ -818,7 +833,8 @@ void ABattleManager::HandlePlayerAttackHit(APlayerBase* Attacker)
 			float FinalDamage = BattleDamageCalcComp->CalculateFinalDamage(Attacker, CurrentTargetEnemy, *SkillData);
 
 			// 3. 타겟 에너미에게 계산된 데미지를 입히라고 명령합니다.
-			Cast<AEnemy>(CurrentTargetEnemy)->setEnemyHP(FinalDamage, Attacker);
+			BattleResultComp->RecordDamage(FinalDamage);
+			CurrentTargetEnemy->setEnemyHP(FinalDamage, Attacker);
 		}
 		if (CurrentTargetEnemy->getEnemyHP() <= 0)
 			CurrentTargetEnemy->EnemyDie();
@@ -840,7 +856,7 @@ void ABattleManager::HandleEnemyAttackHit(AEnemy* Attacker)
 			float FinalDamage = BattleDamageCalcComp->CalculateFinalDamage(Attacker, CurrentTargetPlayer, *SkillData);
 
 			// 3. 타겟 에너미에게 계산된 데미지를 입히라고 명령합니다.
-			Cast<APlayerBase>(CurrentTargetPlayer)->setplayerHP(FinalDamage, Attacker);
+			CurrentTargetPlayer->setplayerHP(FinalDamage, Attacker);
 			
 
 		}

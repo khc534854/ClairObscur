@@ -17,6 +17,8 @@ class CLAIROBSCUR_API UBattleHUDWidget : public UUserWidget
 protected:
 	virtual void NativeConstruct() override;
 
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
 public:
 	void UpdateTurnOrderUI(int32 index);
 	
@@ -73,6 +75,21 @@ public:
 	UPROPERTY(EditAnywhere, meta=(BindWidget))
 	class UProgressBar* ProgressBarBossHP;
 
+	UPROPERTY(EditAnywhere, meta=(BindWidget))
+	class UProgressBar* ProgressBarBossDelayHP;
+
+private:
+	float DelayHP_TargetPercent = 1.f;
+
+	UPROPERTY(EditAnywhere, Category = "HUD|Boss HP")
+	float DelayHP_InitialDelay = 0.5f;
+
+	float DelayHP_CurrentDelay = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "HUD|Boss HP")
+	float DelayHP_InterpSpeed = 2.0f;
+
+public:
 	//turn
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UVerticalBox* TurnBox;

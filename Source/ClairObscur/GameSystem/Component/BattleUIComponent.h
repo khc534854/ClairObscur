@@ -54,8 +54,11 @@ public:
 	TSubclassOf<UUserWidget> PlayerHUDWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UUserWidget> EndWidgetClass;
+	TSubclassOf<UUserWidget> EndWinWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> EndLoseWidgetClass;
+	
 	UPROPERTY()
 	class UUserWidget* SelectActionWidget;
 
@@ -69,7 +72,10 @@ public:
 	class UBattleHUDWidget* BattleHUDWidget;
 
 	UPROPERTY()
-	class UBattleEndWidget* DieWidget;
+	class UBattleEndWidget* BattleWinWidget;
+	
+	UPROPERTY()
+	class UUserWidget* BattleLoseWidget;
 
 
 	UPROPERTY()
@@ -79,5 +85,8 @@ public:
 	// Die Widget 업데이트
 	UFUNCTION()
 	void OnBattleEnded();
+
+	UFUNCTION()
+	void OnBattleLoseEnded();
 	
 };

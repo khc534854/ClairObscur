@@ -378,16 +378,7 @@ void AEnemy::setEnemyHP(float hitdamage, AActor* DamageCauser)
 {
 	currentHP -= hitdamage;
 	currentHP = FMath::Clamp(currentHP, 0, maxHP);
-
-	// WIDGET UI 띄우기
-	AController* InstigatorCtrl = nullptr;
-	if (APawn* P = Cast<APawn>(DamageCauser)) InstigatorCtrl = P->GetController();
-	else if (DamageCauser) InstigatorCtrl = DamageCauser->GetInstigatorController();
-
-	TakeDamage((float)hitdamage, FDamageEvent(), InstigatorCtrl, DamageCauser);
-
 	
-	OnHPChanged.Broadcast(currentHP, maxHP, this);
 	if (currentHP <= 0)
 	{
 		if (bPhaseTwo)
@@ -403,6 +394,17 @@ void AEnemy::setEnemyHP(float hitdamage, AActor* DamageCauser)
 			AnimInst->PhaseTwoAnim();
 		}
 	}
+	
+	// WIDGET UI 띄우기
+	AController* InstigatorCtrl = nullptr;
+	if (APawn* P = Cast<APawn>(DamageCauser)) InstigatorCtrl = P->GetController();
+	else if (DamageCauser) InstigatorCtrl = DamageCauser->GetInstigatorController();
+
+	TakeDamage((float)hitdamage, FDamageEvent(), InstigatorCtrl, DamageCauser);
+
+	
+	OnHPChanged.Broadcast(currentHP, maxHP, this);
+
 }
 
 float AEnemy::getEnemyHP()

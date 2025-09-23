@@ -48,6 +48,7 @@ void UBattleResultDataComponent::StartBattle()  // 전투 시작 시 호출됨
 	
 }
 
+// 타이밍에 맞춰서 호출하기
 FBattleResult UBattleResultDataComponent::EndBattle()  // 전투 종료 시 모든 데이터 ui에 전달
 {
 	// 모든 데이터 전달해주기

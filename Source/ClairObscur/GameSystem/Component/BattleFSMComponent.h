@@ -16,7 +16,8 @@ enum class EBattleState
 	PlayerPlayAction,
 	 EnemyPlayAction,
 	         Waiting,
-	       EndBattle,
+		EndWinBattle,
+	   EndLoseBattle,
 	       NotBattle
 };
 
@@ -56,6 +57,7 @@ protected:
 	void PlayerPlayActionState();
 	void  EnemyPlayActionState();
 	void          WaitingState();
-	void        EndBattleState();
+	void     EndWinBattleState();
+	void    EndLoseBattleState();
 	void        NotBattleState();
 };

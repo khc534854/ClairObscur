@@ -100,6 +100,12 @@ public:
 	UPROPERTY()
 	class APlayerBase* CurrentTargetPlayer;
 
+	UPROPERTY()
+	class APlayerBase* CounterPlayer;
+
+	UPROPERTY()
+	ACharacter* CurrentActionActor;
+
 public:
 	// Input
 	UPROPERTY(EditAnywhere, Category = "Input")

@@ -18,6 +18,48 @@ void UBattleHUDWidget::NativeConstruct()
 	if (WBP_EnemyTurnHUD)   TurnWidgetMap.Add(FName("Enemy"), WBP_EnemyTurnHUD);
 }
 
+void UBattleHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	if (!ProgressBarBossDelayHP) return;
+
+	// 현재 딜레이 바의 퍼센트를 가져옵니다.
+	float CurrentDelayPercent = ProgressBarBossDelayHP->GetPercent();
+
+	// 목표치와 현재 딜레이 바의 퍼센트가 거의 같다면 아무것도 하지 않음
+	if (FMath::IsNearlyEqual(CurrentDelayPercent, DelayHP_TargetPercent))
+	{
+		return;
+	}
+    
+	// 목표치보다 현재 딜레이 바가 더 높다면 (즉, 데미지를 입었다면)
+	if (CurrentDelayPercent > DelayHP_TargetPercent)
+	{
+		// 1. 설정된 딜레이 시간(DelayHP_InitialDelay)만큼 기다립니다.
+		if (DelayHP_CurrentDelay < DelayHP_InitialDelay)
+		{
+			DelayHP_CurrentDelay += InDeltaTime;
+			return; // 아직 기다리는 중이므로 아래 로직을 실행하지 않음
+		}
+
+		// 2. 딜레이가 끝나면, 목표치를 향해 부드럽게 감소시킵니다.
+		const float NewDelayPercent = FMath::FInterpTo(
+			CurrentDelayPercent,      // 현재 값
+			DelayHP_TargetPercent,    // 목표 값
+			InDeltaTime,              // 델타 타임
+			DelayHP_InterpSpeed       // 보간 속도
+		);
+
+		ProgressBarBossDelayHP->SetPercent(NewDelayPercent);
+	}
+	else // 목표치보다 현재 딜레이 바가 더 낮다면 (즉, 회복했다면)
+	{
+		// 회복하는 경우에는 딜레이 없이 즉시 따라가도록 설정
+		ProgressBarBossDelayHP->SetPercent(DelayHP_TargetPercent);
+	}
+}
+
 void UBattleHUDWidget::UpdateTurnOrderUI(int32 index)
 {
 	if (!TurnBox) return;
@@ -126,8 +168,13 @@ void UBattleHUDWidget::UpdateLuneCostText(int32 Cost)
 void UBattleHUDWidget::UpdateBossHP(float CurrentHP, float MaxHP)
 {
 	if (MaxHP <= 0.f) return;
-	if (!ProgressBarBossHP) return;
 
-	const float Percent = CurrentHP / MaxHP;
-	ProgressBarBossHP->SetPercent(Percent);
+	if (ProgressBarBossHP)
+	{
+		ProgressBarBossHP->SetPercent(CurrentHP / MaxHP);
+	}
+
+	DelayHP_TargetPercent = CurrentHP / MaxHP;
+
+	DelayHP_CurrentDelay = 0.0f;
 }

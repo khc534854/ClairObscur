@@ -55,8 +55,11 @@ void UBattleFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	case EBattleState::Waiting:
 		WaitingState();
 		break;
-	case EBattleState::EndBattle:
-		EndBattleState();
+	case EBattleState::EndWinBattle:
+		EndWinBattleState();
+		break;
+	case EBattleState::EndLoseBattle:
+		EndWinBattleState();
 		break;
 	case EBattleState::NotBattle:
 		NotBattleState();
@@ -92,7 +95,11 @@ void UBattleFSMComponent::WaitingState()
 {
 }
 
-void UBattleFSMComponent::EndBattleState()
+void UBattleFSMComponent::EndWinBattleState()
+{
+}
+
+void UBattleFSMComponent::EndLoseBattleState()
 {
 }
 

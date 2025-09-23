@@ -62,8 +62,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bMoveOut = OwnerPlayer->fsm->bMoveOut;
 	bReturn = OwnerPlayer->fsm->bReturn;
 
-	// 그래플링
-	bGrappling  = OwnerPlayer->bGrappling;
+
 }
 
 

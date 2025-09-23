@@ -5,6 +5,7 @@
 
 #include "PlayerCameraShake.h"
 #include "CharacterComponent/SkillRow.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PlayerDirectory/PlayerBase.h"
 
@@ -36,6 +37,7 @@ void UPlayerFSM::BeginPlay()
 	
 	// 2. 스킬 테이블 몽타주 전부 프리로드
 	warmup();  
+	
 	
 }
 
@@ -277,17 +279,15 @@ void UPlayerFSM::OnTakeDamage()
 	ApplyHitStopFromSkill();
 
 	// 카메라 흔들림
-	APlayerController* PC = Cast<APlayerController>(player->GetController());
-	if (!PC){UE_LOG(LogTemp, Warning, TEXT("PC NULL"))};
-	
-	if (PC)
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 	{
-		if (PC->PlayerCameraManager)
+		
+		if (PC->PlayerCameraManager && UPlayerCameraShake::StaticClass()) // TSubclassOf<UMatineeCameraShake>
 		{
-			PC->PlayerCameraManager->StartCameraShake(UPlayerCameraShake::StaticClass(), 1.0f);
-			UE_LOG(LogTemp, Warning, TEXT("CS Call")); 
+			PC->PlayerCameraManager->StartCameraShake(UPlayerCameraShake::StaticClass(),  1.0f);
 		}
 	}
+	
 	
 }
 

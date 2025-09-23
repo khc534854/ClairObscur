@@ -18,6 +18,7 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Component/BattleFieldComponent.h"
+#include "Component/BattleResultDataComponent.h"
 #include "PlayerDirectory/PlayerBase.h"
 #include "PlayerDirectory/PlayerFSM.h"
 #include "Widget/SelectSkillWidget.h"
@@ -38,6 +39,7 @@ ABattleManager::ABattleManager()
 	BattleDamageCalcComp = CreateDefaultSubobject<UBattleDamageCalculateComponent>(TEXT("BattleDamageCalcComp"));
 	BattleCameraComp = CreateDefaultSubobject<UBattleCameraComponent>(TEXT("BattleCameraComp"));
 	BattleFieldComp = CreateDefaultSubobject<UBattleFieldComponent>(TEXT("BattleFieldComp"));
+	BattleResultComp = CreateDefaultSubobject<UBattleResultDataComponent>(TEXT("BattleResultData"));
 	
 	RootComponent = BattleFieldComp;
 	//BattleFieldComp->BaseComp->SetupAttachment(BattleFieldComp);
@@ -95,6 +97,9 @@ void ABattleManager::StartBattle()
 		}
 	}
 	BattleUIComp->BattleHUDWidget->AddToViewport();
+
+	// 전투 결과 업데이트를 위한 함수 호출
+	BattleResultComp->StartBattle(); 
 }
 
 void ABattleManager::EndBattle()
@@ -112,6 +117,8 @@ void ABattleManager::EndBattle()
 	}
 
 	DisableInput(GetWorld()->GetFirstPlayerController());
+
+
 }
 
 void ABattleManager::EnableInput(APlayerController* PlayerController)

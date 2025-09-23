@@ -4,8 +4,10 @@
 #include "BattleUIComponent.h"
 
 #include "BattleFSMComponent.h"
+#include "BattleResultDataComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "GameSystem/BattleManager.h"
+#include "GameSystem/Widget/BattleEndWidget.h"
 #include "GameSystem/Widget/BattleHUDWidget.h"
 #include "GameSystem/Widget/SelectSkillWidget.h"
 #include "GameSystem/Widget/WidgetComponent/QTEWidget.h"
@@ -58,7 +60,7 @@ void UBattleUIComponent::BeginPlay()
 	}
 	if (EndWidgetClass)
 	{
-		DieWidget = CreateWidget<UUserWidget>(PC, EndWidgetClass);
+		DieWidget = CreateWidget<UBattleEndWidget>(PC, EndWidgetClass);
 	}
 
 	HideBattleWidgets();
@@ -135,7 +137,7 @@ void UBattleUIComponent::OnFSMStateChanged(EBattleState NewState)
 		break;
 	case EBattleState::EndBattle:
 		HideAllWidgets();
-		DieWidget->AddToViewport();
+	//	OnBattleEnded();
 		break;
 	case EBattleState::NotBattle:
 		break;
@@ -157,6 +159,23 @@ void UBattleUIComponent::ShowQTEWidget()
 
 void UBattleUIComponent::UpdateHUD()
 {
+}
+
+
+
+// 배틀 종료 후 결과 UI 
+void UBattleUIComponent::OnBattleEnded()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Battleend"));
+	ABattleManager* OwnerManager = GetOwner<ABattleManager>();
+	const FBattleResult Result = OwnerManager->BattleResultComp->EndBattle();
+	
+	if (DieWidget)
+	{
+		DieWidget->AddToViewport();
+		DieWidget->ApplyResult(Result); 
+	}
+	
 }
 
 

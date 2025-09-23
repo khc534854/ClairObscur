@@ -167,6 +167,12 @@ public:
 	TSubclassOf<UAnimInstance> FreeAnimClass;
 	
 
+	// 히트스탑
+	UFUNCTION(BlueprintCallable, Category="HitStop")
+	void ApplyHitStopFromSkill();
+	
+	void ResetTimeDilation();
+	FTimerHandle HitStopTimerHandle;
 	
 
 	// 몽타주

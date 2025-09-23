@@ -61,18 +61,6 @@ public:
 		
 	void DamageState();
 	void DieState();
-
-	// 피격시 호출될 이벤트 함수 -> 콜백
-	UPROPERTY(EditDefaultsOnly, Category=FSM)
-	int32 MAX_HP = 3;
-	int32 hp = MAX_HP;
-
-	// 필요속성 : 넉백 파워
-	UPROPERTY(EditAnywhere, Category=FSM)
-	float knockbackPower = 10;
-	FVector knockbackPos;
-	void OnDamageProcess(FVector hitDirection);
-
 	
 	void SetTargetToMove(FVector targetVect);
 

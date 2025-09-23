@@ -89,6 +89,10 @@ public:
 	TArray<class AEnemy*> EnemyParty; // 적군 목록
 
 
+	// 배틀 결과 기록 컴포넌트
+	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
+	class UBattleResultDataComponent* BattleResultComp;
+	
 	
 	UPROPERTY()
 	class AEnemy* CurrentTargetEnemy;

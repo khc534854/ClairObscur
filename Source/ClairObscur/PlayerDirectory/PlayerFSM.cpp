@@ -2,6 +2,8 @@
 
 
 #include "PlayerDirectory/PlayerFSM.h"
+
+#include "PlayerCameraShake.h"
 #include "CharacterComponent/SkillRow.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PlayerDirectory/PlayerBase.h"
@@ -217,7 +219,7 @@ void UPlayerFSM::SetCommandedState(ECommandedPlayerState NewState)
 // 상태 함수
 void UPlayerFSM::CombatIdleState()
 {
-	GEngine->AddOnScreenDebugMessage(2, 1, FColor::Orange, TEXT("CombatIdleState"));
+	//GEngine->AddOnScreenDebugMessage(2, 1, FColor::Orange, TEXT("CombatIdleState"));
 }
 
 void UPlayerFSM::SelectActionState()
@@ -228,28 +230,31 @@ void UPlayerFSM::SelectActionState()
 
 void UPlayerFSM::SelectSkillState()
 {
-	GEngine->AddOnScreenDebugMessage(3, 1, FColor::Orange, TEXT("SelectSkillState"));
+	//GEngine->AddOnScreenDebugMessage(3, 1, FColor::Orange, TEXT("SelectSkillState"));
 }
 
 
 void UPlayerFSM::AttackState()
 {
-	GEngine->AddOnScreenDebugMessage(4, 1, FColor::Orange, TEXT("AttackState"));
+	//GEngine->AddOnScreenDebugMessage(4, 1, FColor::Orange, TEXT("AttackState"));
 }
 
 
 void UPlayerFSM::DamagedState()
 {
-	GEngine->AddOnScreenDebugMessage(5, 1, FColor::Orange, TEXT("DamagedState"));
+	//GEngine->AddOnScreenDebugMessage(5, 1, FColor::Orange, TEXT("DamagedState"));
 
 	// 피격 조건 따라서 dodge, damaged, parry
 	SelectDamagedFunction = [this](){if (SelectedAction) (this->*SelectedAction)();};
 	if (SelectDamagedFunction) SelectDamagedFunction();
+
+
+	
 }
 
 void UPlayerFSM::DieState()
 {
-	GEngine->AddOnScreenDebugMessage(6, 1, FColor::Orange, TEXT("DieState"));
+	//GEngine->AddOnScreenDebugMessage(6, 1, FColor::Orange, TEXT("DieState"));
 
 	// if (DieMontage && player->GetMesh() && player->GetMesh()->GetAnimInstance())
 	// {
@@ -267,6 +272,23 @@ void UPlayerFSM::OnTakeDamage()
 	{
 		player->GetMesh()->GetAnimInstance()->Montage_Play(DamagedMontage);
 	}
+	
+	// 히트스탑 적용
+	ApplyHitStopFromSkill();
+
+	// 카메라 흔들림
+	APlayerController* PC = Cast<APlayerController>(player->GetController());
+	if (!PC){UE_LOG(LogTemp, Warning, TEXT("PC NULL"))};
+	
+	if (PC)
+	{
+		if (PC->PlayerCameraManager)
+		{
+			PC->PlayerCameraManager->StartCameraShake(UPlayerCameraShake::StaticClass(), 1.0f);
+			UE_LOG(LogTemp, Warning, TEXT("CS Call")); 
+		}
+	}
+	
 }
 
 // 회피
@@ -372,6 +394,75 @@ const FSkillRow* UPlayerFSM::GetSkillRowByIndex(int32 Index) const
 	static const FString Ctx = TEXT("GetSkillRowByIndex");
 	return Table->FindRow<FSkillRow>(RowNames[Index], Ctx);
 }
+
+
+
+// 히트 스탑 
+void UPlayerFSM::ApplyHitStopFromSkill()
+{
+	/*
+	// 스킬 데이터 가져오기
+	const FSkillRow* Row = GetSkillRowByIndex(Index);
+	if (!Row)
+	{
+		return;
+	}
+
+	// 1) Custom Time Dilation 적용
+	if (AActor* OwnerActor = GetOwner())
+	{
+		OwnerActor->CustomTimeDilation = FMath::Clamp(Row->HitStopDilation, 0.01f, 10.f);
+	}
+
+	// 2) 타이머로 복구
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(HitStopTimerHandle);
+		World->GetTimerManager().SetTimer(
+			HitStopTimerHandle,
+			this, &UPlayerFSM::ResetTimeDilation,
+			Row->HitStopDuration,
+			false
+		);
+	}
+	*/
+
+
+	UE_LOG(LogTemp, Warning, TEXT("Hit stop call")); 
+	float UniformHitStopDilation = 0.1f;
+	float UniformHitStopDuration = 0.08f;
+
+
+
+	if (AActor* OwnerActor = GetOwner())
+	{
+		OwnerActor->CustomTimeDilation = FMath::Clamp(UniformHitStopDilation, 0.01f, 10.f);
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(HitStopTimerHandle);
+		World->GetTimerManager().SetTimer(
+			HitStopTimerHandle,
+			this, &UPlayerFSM::ResetTimeDilation,
+			FMath::Max(0.f, UniformHitStopDuration),
+			false
+		);
+	}
+	
+}
+
+
+// 원래대로 복구
+void UPlayerFSM::ResetTimeDilation()
+{
+	if (AActor* OwnerActor = GetOwner())
+	{
+		OwnerActor->CustomTimeDilation = 1.0f;
+	}
+}
+
+
 
 void UPlayerFSM::warmup()
 {

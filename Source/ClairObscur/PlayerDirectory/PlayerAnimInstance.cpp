@@ -5,7 +5,8 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "PlayerBase.h"
-
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 UPlayerAnimInstance::UPlayerAnimInstance()
@@ -45,11 +46,24 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		OwnerPlayer = Cast<APlayerBase>(TryGetPawnOwner());
 	if (!OwnerPlayer.IsValid()) return;
 
+	FVector velocity = OwnerPlayer->GetVelocity();
+	FVector forward = OwnerPlayer->GetActorForwardVector();
+	FVector right = OwnerPlayer ->GetActorRightVector();
+
+	speed = UKismetMathLibrary::Dot_VectorVector(velocity, forward);
+	direction = FVector::DotProduct(velocity, right);
+	auto* cmp = OwnerPlayer->GetCharacterMovement();
+	isInAir = cmp->IsFalling();
+
+	
 	// FSM 상태 복사 (ABP에서 사용하기 위함)
 	AnimFsmState = OwnerPlayer->fsm->CurrentState;
 
 	bMoveOut = OwnerPlayer->fsm->bMoveOut;
 	bReturn = OwnerPlayer->fsm->bReturn;
+
+	// 그래플링
+	bGrappling  = OwnerPlayer->bGrappling;
 }
 
 

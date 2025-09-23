@@ -67,15 +67,9 @@ void UEnemyFSM::MoveState()
 	if (!didIAttack)
 	{
 		if ((targetVector - me->GetActorLocation()).Size() < distanceTarget)
-		{
-			SetEnemyState(EEnemyState::Attack);
-			return;
-		}
+		{SetEnemyState(EEnemyState::Attack);}
 		else
-		{
-			me->SetActorLocation(me->GetActorLocation() + moveSpeed * moveDirection * GetWorld()->GetDeltaSeconds());
-
-		}
+		{me->SetActorLocation(me->GetActorLocation() + moveSpeed * moveDirection * GetWorld()->GetDeltaSeconds());}
 	}
 	else
 	{
@@ -90,8 +84,6 @@ void UEnemyFSM::MoveState()
 			OnEnemyActionFinished.Broadcast();
 		}
 	}
-
-
 }
 
 void UEnemyFSM::AttackState()
@@ -106,16 +98,11 @@ void UEnemyFSM::DieState()
 {
 }
 
-void UEnemyFSM::OnDamageProcess(FVector hitDirection)
-{
-}
 
 void UEnemyFSM::SetTargetToMove(FVector targetVect)
 {
 	targetVector = targetVect;
 }
-
-
 
 void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 {
@@ -123,7 +110,6 @@ void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 	{
 		CurrentState = NewState;
 		me->AnimInst->animState = CurrentState;
-
 		// Broadcast immediately on state change if entering Move
 		if (me)
 		{
@@ -142,7 +128,12 @@ void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 				if (!didIAttack)
 				{
 					enemyOriginLocation = me->GetActorLocation();
-					me->skillIndex = FMath::RandRange(0,1);
+					me->skillIndex = FMath::RandRange(0,me->sizeDT);
+
+					if (me->skillIndex == 3)
+						distanceTarget = 1000;
+					else
+						distanceTarget = 500;
 				}
 				moveDirection = (targetVector - me->GetActorLocation()).GetSafeNormal();
 				returnDirection = (enemyOriginLocation - me->GetActorLocation()).GetSafeNormal();
@@ -159,6 +150,7 @@ void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 				break;
 			}
 		}
+
 	}
 }
 

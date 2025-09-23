@@ -1004,6 +1004,19 @@ void ABattleManager::HandleWinSequenceFinished()
 
 void ABattleManager::HandlePhaseSequenceFinished()
 {
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController)
+	{
+		PlayerController->SetViewTargetWithBlend(this, 0.5f);
+
+		// 2. 플레이어의 시점을 다른 카메라가 아닌, 'LevelSequenceActor' 자체로 전환합니다.
+		//PlayerController->SetViewTargetWithBlend(SequenceActor, 0.5f);
+	}
+	if(EnemyAnimInstclass)
+		CurrentTargetEnemy->GetMesh()->SetAnimInstanceClass(EnemyAnimInstclass);
+
+	CurrentTargetEnemy->ReinitializeAnimInstance();
+	CurrentTargetEnemy->StartPhaseTwo();
 	CurrentTargetEnemy->bPhaseTwo = true;
 	CurrentTargetEnemy->currentHP = CurrentTargetEnemy->maxHP;
 	BattleUIComp->BattleHUDWidget->UpdateBossHP(1, 1);

@@ -164,4 +164,7 @@ public:
 
 	UFUNCTION()
 	void HandlePhaseSequenceFinished();
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UAnimInstance> EnemyAnimInstclass;
 };

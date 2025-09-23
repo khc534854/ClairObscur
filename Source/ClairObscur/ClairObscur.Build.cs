@@ -9,9 +9,9 @@ public class ClairObscur : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "LevelSequence", "MovieScene", "CinematicCamera" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "Eigen", "Niagara" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "Eigen", "Niagara", "LevelSequence", "CinematicCamera" });
 		
 		PublicIncludePaths.AddRange(new string[] 
 			{ "ClairObscur" });

@@ -64,6 +64,10 @@ void UBattleFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	case EBattleState::NotBattle:
 		NotBattleState();
 		break;
+	case EBattleState::PhaseChange:
+		PhaseChangeState();
+		break;
+	default: ;
 	}
 }
 
@@ -100,6 +104,10 @@ void UBattleFSMComponent::EndWinBattleState()
 }
 
 void UBattleFSMComponent::EndLoseBattleState()
+{
+}
+
+void UBattleFSMComponent::PhaseChangeState()
 {
 }
 

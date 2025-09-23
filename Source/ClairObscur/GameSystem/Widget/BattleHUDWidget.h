@@ -35,6 +35,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void UpdateGustaveCostText(int32 Cost);
 
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void SetGustaveDeathMask(bool bDeath);
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void SetLuneDeathMask(bool bDeath);
 
 	UPROPERTY(EditAnywhere, meta=(BindWidget))
 	class UCostBarWidget* GustaveCostBar;
@@ -68,6 +72,11 @@ public:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UTextBlock* LuneTextHP;
 
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UImage* GustaveDeathMask;
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UImage* LuneDeathMask;
+	
 	//Boss
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void UpdateBossHP(float CurrentHP, float MaxHP);

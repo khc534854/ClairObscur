@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameSystem/Component/BattleResultDataComponent.h"
 #include "BattleUIComponent.generated.h"
 
 
@@ -20,7 +21,7 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-private:
+public:
 	// 모든 위젯을 숨기기 위한 헬퍼 함수
 	void HideBattleWidgets();
 	void HideAllWidgets();
@@ -88,5 +89,9 @@ public:
 
 	UFUNCTION()
 	void OnBattleLoseEnded();
-	
+
+	FBattleResult PendingWinResult;
+	bool bHasPendingWinResult = false;
+
+	void ShowWinWidgetIfReady();
 };

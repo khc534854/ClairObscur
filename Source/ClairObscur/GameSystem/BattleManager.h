@@ -151,4 +151,17 @@ public:
 	UFUNCTION()
 	void HandleEnemyAttackHit(AEnemy* Attacker);
 
+
+public:
+	UPROPERTY()
+	class ALevelSequenceActor* EndSequenceActor;
+	UPROPERTY()
+	class ULevelSequencePlayer* EndSequencePlayer;
+	bool bIsPlayingEndSequence;
+
+	UFUNCTION()
+	void HandleWinSequenceFinished();
+
+	UFUNCTION()
+	void HandlePhaseSequenceFinished();
 };

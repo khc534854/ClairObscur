@@ -4,6 +4,7 @@
 #include "BattleManager.h"
 
 #include "AssetTypeCategories.h"
+#include "CineCameraActor.h"
 #include "Component/BattleTimingComponent.h"
 #include "Component/BattleTurnComponent.h"
 #include "Component/BattleFSMComponent.h"
@@ -25,6 +26,9 @@
 #include "Widget/BattleHUDWidget.h"
 #include "Enemy/Enemy.h"
 #include "Enemy/EnemyFSM.h"
+#include "EngineUtils.h"
+#include "LevelSequenceActor.h"
+#include "LevelSequencePlayer.h"
 
 // Sets default values
 ABattleManager::ABattleManager()
@@ -84,19 +88,26 @@ void ABattleManager::StartBattle()
 	SetParticipant();
 	EnableInput(GetWorld()->GetFirstPlayerController());
 	BindInputActions();
+	
+	BattleUIComp->BattleHUDWidget->AddToViewport();
+	
 	for (auto* player : PlayerParty)
 	{
 		if (player->ActorHasTag(FName("Gustave")))
 		{
 			BattleUIComp->BattleHUDWidget->UpdateGustaveCostBar(player->currentAP);
+			BattleUIComp->BattleHUDWidget->UpdateGustaveHP(player->maxHP, player->maxHP);
+			BattleUIComp->BattleHUDWidget->UpdateGustaveHPText(player->maxHP, player->maxHP);
+			
 			player->SetActorLocation(BattleFieldComp->PlayerPos1->GetComponentLocation());
 		}
 		else if (player->ActorHasTag(FName("Lune")))
 		{
 			BattleUIComp->BattleHUDWidget->UpdateLuneCostBar(player->currentAP);
+			BattleUIComp->BattleHUDWidget->UpdateLuneHP(player->maxHP, player->maxHP);
+			BattleUIComp->BattleHUDWidget->UpdateLuneHPText(player->maxHP, player->maxHP);
 		}
 	}
-	BattleUIComp->BattleHUDWidget->AddToViewport();
 
 	// 전투 결과 업데이트를 위한 함수 호출
 	BattleResultComp->StartBattle(); 
@@ -409,20 +420,44 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 					BattleTimingComp->MaxAttackCount = SkillData->AttackCount;
 					BattleTimingComp->CurrentParryCount = 0;
 				}
+
+				FVector CamLocation;
+				FRotator CamRotation;
+				if (CurrentTargetPlayer->ActorHasTag(FName("Gustave")))
+				{
+					if (skillIndexToUse == 3)
+					{
+						BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45704.492189,16119.277105,-22062.213783));
+						BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-11.600000,200.800003,0.000000));
+						CamLocation = FVector(-44903.472172,16302.224800,-22040.096421);
+						CamRotation = FRotator(-24.400000,-161.000002,0.000000);
+					}
+					else
+					{
+						CamLocation = FVector(-45464.572718,15650.510706,-22154.158833);
+						CamRotation = FRotator(-22.600000,-238.600004,0.000000);
+					}
+
+				}
+				else if (CurrentTargetPlayer->ActorHasTag(FName("Lune")))
+				{
+					if (skillIndexToUse == 3)
+					{
+						BattleCameraComp->MainCamera->SetWorldLocation(FVector(-45639.727037,15703.430451,-22134.687635));
+						BattleCameraComp->MainCamera->SetWorldRotation(FRotator(-21.000000,-177.600003,0.000000));
+						CamLocation = FVector(-44946.279829,15673.720716,-22032.814928);
+						CamRotation = FRotator(-25.000000,-182.800003,0.000000);
+					}
+					else
+					{
+						CamLocation = FVector(-45385.215001,15349.028405,-22390.926507);
+						CamRotation = FRotator(-7.000000,124.200002,-1.000000);
+					}
+				}
+				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 2.0f);
 			}
 
-			if (CurrentTargetPlayer->ActorHasTag(FName("Gustave")))
-			{
-				FVector CamLocation = FVector(-45464.572718,15650.510706,-22154.158833);
-				FRotator CamRotation = FRotator(-22.600000,-238.600004,0.000000);
-				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 2.0f);
-			}
-			else if (CurrentTargetPlayer->ActorHasTag(FName("Lune")))
-			{
-				FVector CamLocation = FVector(-45385.215001,15349.028405,-22390.926507);
-				FRotator CamRotation = FRotator(-7.000000,124.200002,-1.000000);
-				BattleCameraComp->StartMoveWithInterp(CamLocation, CamRotation, 2.0f);
-			}
+
 
 			//topdown
 			//(X = -45402.000000, Y = 15669.000000, Z = -22253.495955)
@@ -465,8 +500,55 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::EndWinBattle:
 		{
-			BattleResultComp->EndBattle();
-			break;
+			ALevelSequenceActor* SequenceActor = nullptr;                                                                        
+			for (TActorIterator<ALevelSequenceActor> It(GetWorld()); It; ++It)                                                   
+      		{                                                                                                                    
+      		    if (It->ActorHasTag(TEXT("WinCinematic")))                                                                   
+      		    {                                                                                                                
+      		        SequenceActor = *It;                                                                                         
+      		        break;                                                                                                       
+      		    }                                                                                                                
+      		}                                                                                                                    
+                                                                                                                           
+      	bool bPlayedSequence = false;                                                                                        
+      	if (SequenceActor)                                                                                                   
+      	{
+      		APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+      		if (PlayerController)
+      		{
+      			ACineCameraActor* CinematicCamera = nullptr;
+      			for (TActorIterator<ACineCameraActor> It(GetWorld()); It; ++It)
+      			{
+      				if (It->ActorHasTag(FName("Cinecamera")))
+      				{
+      					CinematicCamera = *It;
+      					break;
+      				}
+      			}
+
+      			if (CinematicCamera)
+      			{
+      				if (PlayerController)
+      				{
+      					PlayerController->SetViewTargetWithBlend(CinematicCamera, 0.5f);
+      				}
+      			}
+      			// 2. 플레이어의 시점을 다른 카메라가 아닌, 'LevelSequenceActor' 자체로 전환합니다.
+      			//PlayerController->SetViewTargetWithBlend(SequenceActor, 0.5f);
+      		}
+      		
+      	    if (ULevelSequencePlayer* EndPlayer = SequenceActor->GetSequencePlayer())                                           
+      	    {                                                                                                                
+      	        EndPlayer->OnFinished.AddDynamic(this, &ABattleManager::HandleWinSequenceFinished);                             
+      	        EndPlayer->Play();                                                 
+      	        EndSequenceActor  = SequenceActor;
+      	        EndSequencePlayer = EndPlayer;                                                                                 
+      	        bPlayedSequence   = true;                                                                                    
+      	    }                                                                                                                
+      	}                                                                                                                    
+      	if (!bPlayedSequence)                                                                                                
+      	    HandleWinSequenceFinished();                                                                                     
+      	break; 
 		}
 	case EBattleState::EndLoseBattle:
 		{
@@ -474,6 +556,39 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 		}
 	case EBattleState::NotBattle:
 		break;
+	case EBattleState::PhaseChange:
+		{
+			ALevelSequenceActor* SequenceActor = nullptr;                                                                        
+			for (TActorIterator<ALevelSequenceActor> It(GetWorld()); It; ++It)                                                   
+      		{                                                                                                                    
+      		    if (It->ActorHasTag(TEXT("PhaseCinematic")))                                                                   
+      		    {                                                                                                                
+      		        SequenceActor = *It;                                                                                         
+      		        break;                                                                                                       
+      		    }                                                                                                                
+      		}                                                                                                                    
+                                                                                                                           
+      		bool bPlayedSequence = false;                                                                                        
+      		if (SequenceActor)                                                                                                   
+      		{
+      			APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+      			if (PlayerController)
+      			{
+      				PlayerController->SetViewTargetWithBlend(SequenceActor, 0.5f);
+      			}
+      			
+      		    if (ULevelSequencePlayer* PhasePlayer = SequenceActor->GetSequencePlayer())                                           
+      		    {                                                                                                                
+      		        PhasePlayer->OnFinished.AddDynamic(this, &ABattleManager::HandlePhaseSequenceFinished);                             
+      		        PhasePlayer->Play();                                                 
+      		        bPlayedSequence   = true;                                                                                    
+      		    }                                                                                                                
+      		}                                                                                                                    
+      		if (!bPlayedSequence)                                                                                                
+      		    HandlePhaseSequenceFinished();   
+				
+			break;
+		}
 	default:
 		break;
 	}
@@ -491,6 +606,11 @@ void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, b
 		Character->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
 		if (CurrentTargetEnemy->getEnemyHP() <= 0)
 		{
+			if (!CurrentTargetEnemy->bPhaseTwo)
+			{
+				BattleFSMComp->ChangeState(EBattleState::PhaseChange);
+				return;
+			}
 			BattleFSMComp->ChangeState(EBattleState::EndWinBattle);
 			return;
 		}
@@ -784,6 +904,16 @@ void ABattleManager::OnTimingCheckResult(bool bSuccess, ETimingMode TimingMode)
 					
 					if (CurrentTargetPlayer->getplayerHP() <= 0)
 					{
+						if (CurrentTargetPlayer->ActorHasTag(FName("Gustave")))
+						{
+							BattleUIComp->BattleHUDWidget->SetGustaveDeathMask(true);
+			
+						}
+						else if (CurrentTargetPlayer->ActorHasTag(FName("Lune")))
+						{
+							BattleUIComp->BattleHUDWidget->SetLuneDeathMask(true);
+
+						}
 						CurrentTargetPlayer->fsm->SetCommandedState(ECommandedPlayerState::Die);
 						return;
 					}
@@ -836,7 +966,7 @@ void ABattleManager::HandlePlayerAttackHit(APlayerBase* Attacker)
 			BattleResultComp->RecordDamage(FinalDamage);
 			CurrentTargetEnemy->setEnemyHP(FinalDamage, Attacker);
 		}
-		if (CurrentTargetEnemy->getEnemyHP() <= 0)
+		if (CurrentTargetEnemy->getEnemyHP() <= 0 && CurrentTargetEnemy->bPhaseTwo)
 			CurrentTargetEnemy->EnemyDie();
 		else
 			CurrentTargetEnemy->EnemyDamage();
@@ -863,5 +993,20 @@ void ABattleManager::HandleEnemyAttackHit(AEnemy* Attacker)
 
 		CurrentTargetPlayer->fsm->OnTakeDamage();
 	}
+}
+
+void ABattleManager::HandleWinSequenceFinished()
+{
+	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(GetWorld()->GetFirstPlayerController());
+	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
+	BattleUIComp->ShowWinWidgetIfReady();
+}
+
+void ABattleManager::HandlePhaseSequenceFinished()
+{
+	CurrentTargetEnemy->bPhaseTwo = true;
+	CurrentTargetEnemy->currentHP = CurrentTargetEnemy->maxHP;
+	BattleUIComp->BattleHUDWidget->UpdateBossHP(1, 1);
+	BattleTurnComp->AdvanceTurn();
 }
 

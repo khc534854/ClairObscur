@@ -2,6 +2,8 @@
 
 
 #include "BattleHUDWidget.h"
+
+#include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -128,6 +130,28 @@ void UBattleHUDWidget::UpdateGustaveCostText(int32 Cost)
 {
 	if (!WBP_GustaveCost) return;
 	WBP_GustaveCost->SetCost(FText::AsNumber(Cost));
+}
+
+void UBattleHUDWidget::SetGustaveDeathMask(bool bDeath)
+{
+	if (GustaveDeathMask)
+	{
+		if (bDeath)
+			GustaveDeathMask->SetVisibility(ESlateVisibility::Visible);
+		else
+			GustaveDeathMask->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void UBattleHUDWidget::SetLuneDeathMask(bool bDeath)
+{
+	if (LuneDeathMask)
+	{
+		if (bDeath)
+			LuneDeathMask->SetVisibility(ESlateVisibility::Visible);
+		else
+			LuneDeathMask->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 

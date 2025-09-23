@@ -128,8 +128,8 @@ void UEnemyFSM::SetEnemyState(EEnemyState NewState)
 				if (!didIAttack)
 				{
 					enemyOriginLocation = me->GetActorLocation();
-					//me->skillIndex = FMath::RandRange(0,me->sizeDT);
-					me->skillIndex = 3;
+					me->skillIndex = (me->bPhaseTwo ? FMath::RandRange(0,1) : FMath::RandRange(0,3));
+					//me->skillIndex = 3;
 
 					if (me->skillIndex == 3)
 						distanceTarget = 1000;

@@ -18,6 +18,7 @@ enum class EBattleState
 	         Waiting,
 		EndWinBattle,
 	   EndLoseBattle,
+		 PhaseChange,
 	       NotBattle
 };
 
@@ -59,5 +60,6 @@ protected:
 	void          WaitingState();
 	void     EndWinBattleState();
 	void    EndLoseBattleState();
+	void	  PhaseChangeState();
 	void        NotBattleState();
 };

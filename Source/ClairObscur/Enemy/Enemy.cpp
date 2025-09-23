@@ -253,12 +253,12 @@ void AEnemy::EnemyDie()
 		if (AnimInst)
 		{
 			DestroySelf();
-			float Duration = AnimInst->Montage_Play(dieAnim);
+			//AnimInst->Montage_Play(dieAnim);
 			currentTime += GetWorld()->DeltaTimeSeconds;
-			if (currentTime > Duration)
-			{
-				//DestroySelf();
-			}
+			//if (currentTime > Duration)
+			//{
+			//	//DestroySelf();
+			//}
 				
 		}
 	}
@@ -387,11 +387,11 @@ void AEnemy::setEnemyHP(float hitdamage, AActor* DamageCauser)
 		}
 		else
 		{
-			currentHP = maxHP;
-			sizeDT = 3;
-			bPhaseTwo = true;
-			StartPhaseTwo();
-			AnimInst->PhaseTwoAnim();
+			//currentHP = maxHP;
+			//sizeDT = 3;
+			//bPhaseTwo = true;
+			//StartPhaseTwo();
+			//AnimInst->PhaseTwoAnim();
 		}
 	}
 	

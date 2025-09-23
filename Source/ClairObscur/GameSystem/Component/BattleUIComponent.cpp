@@ -6,12 +6,14 @@
 #include "BattleFSMComponent.h"
 #include "BattleResultDataComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "GameSystem/BattleManager.h"
 #include "GameSystem/Widget/BattleEndWidget.h"
 #include "GameSystem/Widget/BattleHUDWidget.h"
 #include "GameSystem/Widget/SelectSkillWidget.h"
 #include "GameSystem/Widget/WidgetComponent/QTEWidget.h"
 #include "GameSystem/Widget/WidgetComponent/SkillDetailWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 
 class ABattleManager;
@@ -180,15 +182,13 @@ void UBattleUIComponent::UpdateHUD()
 // 배틀 종료 후 결과 UI 
 void UBattleUIComponent::OnBattleEnded()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Battleend"));
-	ABattleManager* OwnerManager = GetOwner<ABattleManager>();
-	const FBattleResult Result = OwnerManager->BattleResultComp->EndBattle();
+	ABattleManager* OwnerManager = GetOwner<ABattleManager>();                                                           
+	PendingWinResult = OwnerManager->BattleResultComp->EndBattle(); // 결과만 저장                                       
+	bHasPendingWinResult = true;
 	
-	if (BattleWinWidget)
-	{
-		BattleWinWidget->AddToViewport();
-		BattleWinWidget->ApplyResult(Result); 
-	}
+	//UE_LOG(LogTemp, Warning, TEXT("Battleend"));
+	//ABattleManager* OwnerManager = GetOwner<ABattleManager>();
+	//const FBattleResult Result = OwnerManager->BattleResultComp->EndBattle();
 }
 
 void UBattleUIComponent::OnBattleLoseEnded()
@@ -197,6 +197,18 @@ void UBattleUIComponent::OnBattleLoseEnded()
 	{
 		BattleLoseWidget->AddToViewport();
 	}
+}
+
+void UBattleUIComponent::ShowWinWidgetIfReady()
+{
+	if (!bHasPendingWinResult || !BattleWinWidget) return;                                                               
+                                                                                                                           
+	BattleWinWidget->AddToViewport();                                                                                    
+	BattleWinWidget->ApplyResult(PendingWinResult);                                                                      
+	bHasPendingWinResult = false;
+	
+
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
 }
 
 

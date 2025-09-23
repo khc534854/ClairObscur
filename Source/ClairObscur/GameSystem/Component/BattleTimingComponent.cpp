@@ -90,7 +90,7 @@ void UBattleTimingComponent::OnPlayerInput()
 				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Timing Success"));
 
 				// 전투 결과 업데이트
-				bm->BattleResultComp->DodgeSuccess();
+
 			}
 			else
 			{
@@ -130,6 +130,7 @@ void UBattleTimingComponent::OnPlayerInput()
 					
 					//Cast<ABattleManager>(GetOwner())->BattleFSMComp->ChangeState(EBattleState::Waiting);
 				}
+				bm->BattleResultComp->ParrySuccess();
 			}
 			else
 			{
@@ -180,7 +181,8 @@ void UBattleTimingComponent::OnPlayerInputQ()
 				player->damageComp->SpawnDodgeTypeAt(player->GetActorLocation(), TEXT("PERFECT"));// dodge면 "PERFECT"로 넣어줘야 함.
 
 				// 전투 결과 업데이트
-				bm->BattleResultComp->ParrySuccess();
+				bm->BattleResultComp->DodgeSuccess();
+
 			}
 			else
 			{

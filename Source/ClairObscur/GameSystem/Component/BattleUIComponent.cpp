@@ -58,9 +58,15 @@ void UBattleUIComponent::BeginPlay()
 	{
 		BattleHUDWidget = CreateWidget<UBattleHUDWidget>(PC, PlayerHUDWidgetClass);
 	}
-	if (EndWidgetClass)
+	
+	if (EndWinWidgetClass)
 	{
-		DieWidget = CreateWidget<UBattleEndWidget>(PC, EndWidgetClass);
+		BattleWinWidget = CreateWidget<UBattleEndWidget>(PC, EndWinWidgetClass);
+	}
+
+	if (EndLoseWidgetClass)
+	{
+		BattleLoseWidget = CreateWidget<UUserWidget>(PC, EndLoseWidgetClass);
 	}
 
 	HideBattleWidgets();
@@ -135,10 +141,18 @@ void UBattleUIComponent::OnFSMStateChanged(EBattleState NewState)
 		break;
 	case EBattleState::Waiting:
 		break;
-	case EBattleState::EndBattle:
-		HideAllWidgets();
-	//	OnBattleEnded();
-		break;
+	case EBattleState::EndWinBattle:
+		{
+			HideAllWidgets();
+			OnBattleEnded();
+			break;
+		}
+	case EBattleState::EndLoseBattle:
+		{
+			HideAllWidgets();
+			OnBattleLoseEnded();
+			break;
+		}
 	case EBattleState::NotBattle:
 		break;
 	default: ;
@@ -170,12 +184,19 @@ void UBattleUIComponent::OnBattleEnded()
 	ABattleManager* OwnerManager = GetOwner<ABattleManager>();
 	const FBattleResult Result = OwnerManager->BattleResultComp->EndBattle();
 	
-	if (DieWidget)
+	if (BattleWinWidget)
 	{
-		DieWidget->AddToViewport();
-		DieWidget->ApplyResult(Result); 
+		BattleWinWidget->AddToViewport();
+		BattleWinWidget->ApplyResult(Result); 
 	}
-	
+}
+
+void UBattleUIComponent::OnBattleLoseEnded()
+{
+	if (BattleLoseWidget)
+	{
+		BattleLoseWidget->AddToViewport();
+	}
 }
 
 

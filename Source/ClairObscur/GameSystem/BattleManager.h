@@ -101,6 +101,9 @@ public:
 	class APlayerBase* CurrentTargetPlayer;
 
 	UPROPERTY()
+	class APlayerBase* CounterPlayer;
+
+	UPROPERTY()
 	ACharacter* CurrentActionActor;
 
 public:

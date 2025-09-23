@@ -401,7 +401,6 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 				{
 					BattleTimingComp->MaxAttackCount = SkillData->AttackCount;
 					BattleTimingComp->CurrentParryCount = 0;
-					//BattleTimingComp->StartEnemyParrySequence(SkillData->AttackCount);
 				}
 			}
 
@@ -439,20 +438,19 @@ void ABattleManager::OnFSMStateChanged(EBattleState NewState)
 			SelectedSkillIndex = 4;
 			if (CurrentTargetPlayer && CurrentTargetPlayer->fsm)
 			{
+				CurrentTargetEnemy->fsm->bCounterAttackIng = true;
 				//parryplayer->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
 				//parryplayer->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
 
-				PlayerParty[0]->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
-				PlayerParty[0]->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
-
-				PlayerParty[1]->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
-				PlayerParty[1]->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
-
-
-				//CurrentTargetPlayer->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
-				//CurrentTargetPlayer->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+				//PlayerParty[0]->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
+				//PlayerParty[0]->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+				
+				//PlayerParty[1]->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
+				//PlayerParty[1]->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+				
+				CurrentTargetPlayer->fsm->OnSkillSequenceCompleted.AddDynamic(this, &ABattleManager::OnPlayerActionFinished);
+				CurrentTargetPlayer->OnAttackHitDelegate.AddDynamic(this, &ABattleManager::HandlePlayerAttackHit);
 				CurrentTargetPlayer->fsm->ExecuteSkill(CurrentTargetEnemy->GetActorLocation(), SelectedSkillIndex);
-				CurrentTargetEnemy->fsm->bCounterAttackIng = true;
 				BattleFSMComp->ChangeState(EBattleState::PlayerPlayAction);
 			}
 			break;
@@ -494,8 +492,8 @@ void ABattleManager::OnPlayerActionFinished(int SkillIndex, bool bInterrupted, b
 
 	if (BattleFSMComp->GetBeforeState() == EBattleState::Waiting)
 	{
-		//CurrentTargetPlayer->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
-		//CurrentTargetPlayer->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
+		CurrentTargetPlayer->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
+		CurrentTargetPlayer->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
 		//PlayerParty[0]->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);
 		//PlayerParty[0]->OnAttackHitDelegate.RemoveDynamic(this, &ABattleManager::HandlePlayerAttackHit);
 		//PlayerParty[1]->fsm->OnSkillSequenceCompleted.RemoveDynamic(this, &ABattleManager::OnPlayerActionFinished);

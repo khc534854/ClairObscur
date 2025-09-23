@@ -382,7 +382,7 @@ void AEnemy::setEnemyHP(float hitdamage, AActor* DamageCauser)
 	if (currentHP <= 0)
 	{
 		if (bPhaseTwo)
-		{
+		{	
 			fsm->SetEnemyState(EEnemyState::Die);
 		}
 		else

@@ -2,11 +2,14 @@
 
 
 #include "PlayerNotifyClass.h"
+
+#include "PlayerCameraShake.h"
 #include "ClairObscur/PlayerDirectory/PlayerBase.h"
+#include "Kismet/GameplayStatics.h"
 
 void UPlayerNotifyClass::Notify(USkeletalMeshComponent* MeshComp,
-	UAnimSequenceBase* Animation,
-	const FAnimNotifyEventReference& EventReference)
+                                UAnimSequenceBase* Animation,
+                                const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 
@@ -19,5 +22,16 @@ void UPlayerNotifyClass::Notify(USkeletalMeshComponent* MeshComp,
 		// 플레이어 캐릭터에게 "지금 공격이 적중했다!"고 알려줍니다.
 		PlayerCharacter->OnAttackHit();
 	}
+
+	// 카메라 흔들림
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		
+		if (PC->PlayerCameraManager && UPlayerCameraShake::StaticClass()) // TSubclassOf<UMatineeCameraShake>
+		{
+			PC->PlayerCameraManager->StartCameraShake(UPlayerCameraShake::StaticClass(),  1.0f);
+		}
+	}
+	
 	
 }

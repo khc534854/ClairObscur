@@ -12,6 +12,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameplayTagContainer.h"
 #include "PlayerGrappleActor.h"
+#include "PlayerGrappleComponent.h"
 #include "Components/SplineComponent.h"
 #include "Enemy/Enemy.h"
 #include "Engine/DamageEvents.h"
@@ -60,7 +61,13 @@ APlayerBase::APlayerBase()
 
 	// damageuicomp
 	damageComp = CreateDefaultSubobject<UDamagePopupComponent>(TEXT("DamagePopupComp"));
+	
+	// grapple component ensures BeginPlay lookup succeeds
+	grappleComp = CreateDefaultSubobject<UPlayerGrappleComponent>(TEXT("GrappleComp"));
 
+
+
+	
 	// tag 붙이기
 	Tags.Append({"BattlePossible", "Player"});
 
@@ -72,12 +79,6 @@ APlayerBase::APlayerBase()
 	GetCharacterMovement()->JumpZVelocity = 600.f; // 점프 세기
 	GetCharacterMovement()->AirControl    = 2.f;  // 공중 방향 전환
 
-	//그래플링
-	GrappleRoot = CreateDefaultSubobject<USceneComponent>(TEXT("GrappleRoot"));
-	GrappleRoot->SetupAttachment(GetMesh());
-
-	MoveSpline = CreateDefaultSubobject<USplineComponent>(TEXT("MoveSpline"));
-	MoveSpline->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -85,6 +86,10 @@ void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	grappleComp = FindComponentByClass<UPlayerGrappleComponent>();
+	check(grappleComp);
+
+	
 	if (fsm){fsm->warmup();}
 	
 	// 매핑
@@ -105,6 +110,7 @@ void APlayerBase::BeginPlay()
 	// 체력, AP 초기화
 	currentHP = maxHP;
 	currentAP = maxAP;
+
 	
 	
 	
@@ -120,30 +126,6 @@ void APlayerBase::Tick(float DeltaTime)
 	// 이거 해줘야 다음에 안움직임.
 	direction = FVector::ZeroVector;
 
-
-	// 그래플링
-	if (!bGrappling || TotalLen <= 0.f) return;
-
-	CurDist = FMath::Min(CurDist + Speed * DeltaTime, TotalLen);
-	UE_LOG(LogTemp, Warning, TEXT("[Grapple] CurDist=%.1f / %.1f"), CurDist, TotalLen);
-
-	const FVector P = MoveSpline->GetLocationAtDistanceAlongSpline(CurDist, ESplineCoordinateSpace::World);
-	FVector Delta = P - GetActorLocation();
-
-	FHitResult Hit;
-	GetCharacterMovement()->SafeMoveUpdatedComponent(Delta, GetActorRotation(), true, Hit);
-
-	UE_LOG(LogTemp, Warning, TEXT("[Grapple] Move=OK  BlockHit=%s"),
-		Hit.bBlockingHit ? TEXT("YES") : TEXT("NO"));
-
-	if (VFX)
-	{
-		const FVector StartWS = GrappleRoot ? GrappleRoot->GetComponentLocation() : GetActorLocation();
-		VFX->UpdateEndpoints(StartWS, AnchorWS);
-	}
-
-	if (TotalLen - CurDist <= StopThreshold)
-		EndGrapple(true);
 
 	
 }
@@ -163,13 +145,14 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		input->BindAction(ia_turn, ETriggerEvent::Triggered, this, &APlayerBase::TurnInput);
 		input->BindAction(ia_lookup, ETriggerEvent::Triggered, this, &APlayerBase::LookupInput);
 		input->BindAction(ia_jump, ETriggerEvent::Started, this, &APlayerBase::JumpInput);
-		input->BindAction(ia_grappling, ETriggerEvent::Started, this, &APlayerBase::OnGrapplePressed);
-		input->BindAction(ia_grappling, ETriggerEvent::Completed, this, &APlayerBase::OnGrappleReleased);
+
 	}
 }
 
 void APlayerBase::RunInput(const struct FInputActionValue& value)
 {
+	//if (!grappleComp->bCanMove) {return;}
+
 	bool isPressed = value.Get<bool>();
 	if (isPressed)
 	{
@@ -183,6 +166,8 @@ void APlayerBase::RunInput(const struct FInputActionValue& value)
 
 void APlayerBase::MoveInput(const struct FInputActionValue& value)
 {
+
+	//if (!grappleComp->bCanMove) {return;}
 	FVector2d v = value.Get<FVector2d>();
 
 	direction.X = v.X;
@@ -208,109 +193,6 @@ void APlayerBase::JumpInput(const struct FInputActionValue& value)
 	Jump();
 }
 
-// 그래플링
-void APlayerBase::GetView(FVector& L, FVector& D) const
-{
-    const APlayerController* PC = Cast<APlayerController>(GetController());
-    FRotator R; if (PC) PC->GetPlayerViewPoint(L,R); else { L=GetActorLocation(); R=GetActorRotation(); }
-    D = R.Vector();
-}
-
-bool APlayerBase::TraceAnchor(FVector& OutHit) const
-{
-    FVector L,D; GetView(L,D);
-    FHitResult H;
-	FVector End = L + D * MaxDistance;
-
-	bool bHit = GetWorld()->LineTraceSingleByChannel(H, L, End, ECC_Visibility);
-	DrawDebugLine(GetWorld(), L, End,
-		bHit ? FColor::Green : FColor::Red, // 맞으면 초록, 아니면 빨강
-		false, 1.0f, 0, 2.0f);
-	
-	if (bHit)
-	{
-		OutHit = H.ImpactPoint + H.ImpactNormal * 30.f;
-		return true;
-		
-	}
-    return false;
-}
-
-void APlayerBase::BuildMoveSpline(const FVector& A, const FVector& B, bool UseArc)
-{
-    MoveSpline->ClearSplinePoints(false);
-    MoveSpline->AddSplinePoint(A, ESplineCoordinateSpace::World, false);
-    if (UseArc)
-    {
-        const FVector Mid=0.5f*(A+B);
-        const FVector Dir=(B-A).GetSafeNormal();
-        const FVector Side=FVector::CrossProduct(Dir, FVector::UpVector).GetSafeNormal();
-        const float Dist=FVector::Distance(A,B);
-        const float C=FMath::Clamp(Dist*ArcScale,200.f,1200.f);
-        MoveSpline->AddSplinePoint(Mid+Side*C, ESplineCoordinateSpace::World, false);
-    }
-    MoveSpline->AddSplinePoint(B, ESplineCoordinateSpace::World, false);
-    for (int32 i=0, n=MoveSpline->GetNumberOfSplinePoints(); i<n; ++i)
-        MoveSpline->SetSplinePointType(i, ESplinePointType::Curve, false);
-    MoveSpline->UpdateSpline();
-    TotalLen = MoveSpline->GetSplineLength();
-	UE_LOG(LogTemp, Warning, TEXT("[Grapple] TotalLen=%.1f"), TotalLen);
-}
-
-void APlayerBase::BeginGrapple()
-{
-    bGrappling = true; CurDist = 0.f;
-	GetMesh()->GetAnimInstance()->Montage_Play(GrappleMontage);
-
-	UE_LOG(LogTemp, Warning, TEXT("[Grapple] BeginGrapple"));
-    if (auto* M=GetCharacterMovement()){
-    	M->SetMovementMode(MOVE_Flying);
-    	M->GravityScale=0.f; M->Velocity=FVector::ZeroVector;
-    	UE_LOG(LogTemp, Warning, TEXT("[Grapple] Mode=Flying, Gravity=0"));
-    }
-
-    // VFX(BP_SPLINE) 스폰 + Init
-    if (SplineBPClass && !VFX)
-    {
-        VFX = GetWorld()->SpawnActorDeferred<APlayerGrappleActor>(SplineBPClass, FTransform::Identity, this, this, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-        if (VFX)
-        {
-            const FVector StartWS = GrappleRoot? GrappleRoot->GetComponentLocation() : GetActorLocation();
-            VFX->Init(StartWS, AnchorWS, bArc, ArcScale);
-            UGameplayStatics::FinishSpawningActor(VFX, FTransform::Identity);
-        }
-    }
-}
-
-void APlayerBase::EndGrapple(bool KeepMomentum)
-{
-    if (auto* M=GetCharacterMovement()){ M->GravityScale=1.f; M->SetMovementMode(MOVE_Falling); }
-
-    if (KeepMomentum && TotalLen>0.f)
-    {
-        const FVector Dir = MoveSpline->GetDirectionAtDistanceAlongSpline(TotalLen, ESplineCoordinateSpace::World);
-        LaunchCharacter(Dir*600.f, true, true);
-    }
-
-    if (VFX){ VFX->Shutdown(); VFX->Destroy(); VFX=nullptr; }
-    CurDist=0.f; TotalLen=0.f;
-}
-
-void APlayerBase::OnGrapplePressed()
-{
-
-	UE_LOG(LogTemp, Warning, TEXT("ongrapple"));
-    FVector Hit; if (!TraceAnchor(Hit)) return;
-    AnchorWS = Hit;
-    const FVector StartWS = GrappleRoot? GrappleRoot->GetComponentLocation() : GetActorLocation();
-    BuildMoveSpline(StartWS, AnchorWS, bArc);
-    BeginGrapple();
-}
-
-void APlayerBase::OnGrappleReleased()
-{
-    if (bGrappling) EndGrapple(false);
-}
 
 
 

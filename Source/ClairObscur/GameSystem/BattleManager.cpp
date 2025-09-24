@@ -1012,9 +1012,13 @@ void ABattleManager::HandlePhaseSequenceFinished()
 		// 2. 플레이어의 시점을 다른 카메라가 아닌, 'LevelSequenceActor' 자체로 전환합니다.
 		//PlayerController->SetViewTargetWithBlend(SequenceActor, 0.5f);
 	}
-	if(EnemyAnimInstclass)
-		CurrentTargetEnemy->GetMesh()->SetAnimInstanceClass(EnemyAnimInstclass);
 
+	if(EnemyAnimInstclass)
+	{
+		CurrentTargetEnemy->GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+		CurrentTargetEnemy->GetMesh()->SetAnimInstanceClass(EnemyAnimInstclass);
+	}
+	
 	CurrentTargetEnemy->ReinitializeAnimInstance();
 	CurrentTargetEnemy->StartPhaseTwo();
 	CurrentTargetEnemy->bPhaseTwo = true;
